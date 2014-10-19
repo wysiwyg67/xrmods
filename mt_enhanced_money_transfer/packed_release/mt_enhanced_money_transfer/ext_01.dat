@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<content id="1.0" name="MitchTech Enhanced Money Transfer" description="Replaces the vanilla money transfer dialog with a better one" author="wysiwyg" version="1" date="2014-10-17" save="false">
+  <dependency version="250"></dependency>
+  <text language="44" name="Enhanced Money Transfer" description="Replaces the vanilla money transfer dialog with a better one" author="wysiwyg" />
+</content>
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+	English text file for MitchTech Enhanced Money Transfer.
+	
+	Author: wysiwyg
+  
+	Last Change:
+	Version: V1.0
+	Date: 19th October 2014
+  
+	X Rebirth version: 2.50
+-->
+<diff xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="rfc5261.xsd">
+  <add sel="/language[@id='44']">
+    <page id="150400" title="MitchTech Enhanced Money Transfer" descr="Texts for enhanced money transfer mod." voice="no">
+      <!-- 1-99: General Texts -->
+      <t id="1">Invalid entry - the text box must contain digits 0-9 and 'm', 'M', 'k' or 'K' - e.g. 12345 200k or 30M</t>
+      <t id="2">Non-valid transaction: account must be set to zero or positive amount</t>
+      <t id="3">Non-valid transaction: not enough money in player and manager accounts to set this amount</t>
+	  <t id="4">Valid transaction: click OK to complete or Cancel to discard</t>
+	  <t id="5">Transfer from player account: </t>
+	  <t id="6">New player account balance: </t>
+	  <t id="7">Transfer to player account: </t>
+	  <t id="8">Current player account balance: </t>
+	  <t id="9">Current </t>
+	  <t id="10"> account balance: </t>
+	  <t id="11">Set </t>
+	  <t id="12"> account exact: </t>
+    </page>
+  </add>
+</diff><?xml version="1.0" encoding="utf-8"?>
+<diff xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <replace sel="/addon/file[@name='menu_moneytransfer.lua']">
+    <file name="MT_enhanced_moneytransfer.lua" />
+  </replace>
+</diff>
