@@ -23,9 +23,15 @@ Multiple prefixes are NOT allowed eg 5kk will not work
 
 [b] == uninstalling == [/b] 
 
-Simply unsubscribe form the mod on Steam and delete the mod folder
+Simply unsubscribe from the mod on Steam and delete the mod folder
 The mod is savegame compatible
 
 [b] == Change History == [/b]
 
 v1.0    -    First Release
+v1.01   -    small change to allow cells to update properly when invalid amount entered.
+
+[b] == CREDITS == [/b]
+Thanks to Mad_Joker for the pioneering work on the Lua interface code
+Thanks to Night Nord for the excellent tool provided for converting Lua bytecode files to Lua source files
+Thanks to all the modders who've already contributed (current and past) for inspiring me to get my finger out and publish something ;)

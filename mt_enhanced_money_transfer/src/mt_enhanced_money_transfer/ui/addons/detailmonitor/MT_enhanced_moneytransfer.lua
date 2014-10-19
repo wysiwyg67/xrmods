@@ -137,6 +137,8 @@ local function editboxUpdateText(_, text, textchanged)
 			menu.displaytext = ReadText( 150400, 1 )
 			menu.displaytext2 = ""				
 			menu.displaytext3 = ""				
+			menu.displayTransferMoney = ""
+			menu.displayPlayerMoney = ""
 			menu.searchtext = ""
 			buttonOKActive = false
 		else																																										
