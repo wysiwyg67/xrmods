@@ -172,7 +172,7 @@ local function editboxUpdateText(_, text, textchanged)
 --				menu.displaytext3 = "New player account balance: " 	
 				menu.displaytext3 =  ReadText( 150400, 6 )	
 				menu.displayTransferMoney = ConvertMoneyString(transferamount, false, true, nil, true) .. " Cr"
-				menu.displayPlayerMoney = ConvertMoneyString(playerMoney, false, true, nil, true) .. " Cr"
+				menu.displayPlayerMoney = ConvertMoneyString(playerMoney - transferamount, false, true, nil, true) .. " Cr"
 				menu.searchtext = ConvertMoneyString(numVal, false, true, nil, true)
 				buttonOKActive = true
 				moneytoplayer = false
@@ -186,7 +186,7 @@ local function editboxUpdateText(_, text, textchanged)
 --				menu.displaytext3 = "New player account balance: "
 				menu.displaytext3 =  ReadText( 150400, 6 )	
 				menu.displayTransferMoney = ConvertMoneyString(transferamount, false, true, nil, true) .. " Cr"
-				menu.displayPlayerMoney = ConvertMoneyString(playerMoney, false, true, nil, true) .. " Cr"
+				menu.displayPlayerMoney = ConvertMoneyString(playerMoney + transferamount, false, true, nil, true) .. " Cr"
 				menu.searchtext = ConvertMoneyString(numVal, false, true, nil, true)
 				buttonOKActive = true
 				moneytoplayer = true

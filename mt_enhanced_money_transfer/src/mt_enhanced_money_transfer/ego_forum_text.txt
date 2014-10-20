@@ -1,16 +1,16 @@
-[b][size=18][color=yellow]Enhanced Money Transfer[/color][/size][/b]
+[b][size=24]Enhanced Money Transfer[/size][/b]
 
-[b]== Introduction ==[/b]
+[b][size=18]== Introduction == [/size][/b]
 
 MitchTech Corporation is proud to release its first update for the Pride of Albion user interface software. This small mod will improve productivity for pilots managing many stations and large accounts. The patch replaces the money transfer slider dialog with a dialog that allows the user to type in the exact amount of credits to be set in the manager's or architect's account.
 
-[b]== Installing ==[/b]
+[b][size=18]== Installing == [/size][/b]
 
 Simply subscribe to the mod on the Steam Workshop for x-rebirth and the mod will download and install automagically next time you start the game.
 
-You can find the source files for the mod [url=x] on my github repository[/url] if you're interested in seeing what changes are being made under the hood.
+You can find the source files for the mod [url=https://github.com/wysiwyg67/xrmods] on my github repository[/url] if you're interested in seeing what changes are being made under the hood.
 
-[b] == Usage == [/b]
+[b][size=18] == Usage == [/size][/b]
 
 The next time you want to transfer some money to or from a station manager or architect you will be presented with an account transaction dialog box that has a single text input box where you can type the amount that you want to set the account to. Note this is the actual amount that the account will contain and NOT the amount to be transferred.
 
@@ -21,17 +21,19 @@ numbers followed by a suffix e.g. 1m or 1M = 1000000,  1k or 1k = 1000 1.23467k 
 Thousand separators are NOT allowed
 Multiple prefixes are NOT allowed eg 5kk will not work 
 
-[b] == uninstalling == [/b] 
+[b][size=18] == Uninstalling == [/size][/b] 
 
 Simply unsubscribe from the mod on Steam and delete the mod folder
 The mod is savegame compatible
 
-[b] == Change History == [/b]
+[b][size=18] == Change History == [/size][/b]
 
 v1.0    -    First Release
+
 v1.01   -    small change to allow cells to update properly when invalid amount entered.
 
-[b] == CREDITS == [/b]
+[b][size=18] == CREDITS == [/size][/b]
+
 Thanks to Mad_Joker for the pioneering work on the Lua interface code
 Thanks to Night Nord for the excellent tool provided for converting Lua bytecode files to Lua source files
-Thanks to all the modders who've already contributed (current and past) for inspiring me to get my finger out and publish something ;)
+Thanks to all the modders who've already contributed (current and past) for inspiring me to get my finger out and publish something
