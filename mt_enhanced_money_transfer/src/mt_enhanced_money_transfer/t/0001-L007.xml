@@ -1,31 +1,29 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!-- 
-	Text file for MitchTech Enhanced Money Transfer.
-	
+	Russian text file for MitchTech Enhanced Money Transfer.
+	Kindly provided by alexalsp (Ego forum name)
 	Author: wysiwyg
   
 	Last Change:
-	Version: V1.03
+	Version: V1.00
 	Date: 20th October 2014
   
 	X Rebirth version: 2.50
 -->
-<diff xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="rfc5261.xsd">
-  <add sel="/language[@id='7']">
-    <page id="150400" title="MitchTech Enhanced Money Transfer" descr="Texts for enhanced money transfer mod." voice="no">
+<language>
+  <page id="150400" title="MitchTech Enhanced Money Transfer" descr="Texts for enhanced money transfer mod." voice="no">
       <!-- 1-99: General Texts -->
-      <t id="1">Invalid entry - the text box must contain digits 0-9 and 'm', 'M', 'k' or 'K' - e.g. 12345 200k or 30M</t>
-      <t id="2">Non-valid transaction: account must be set to zero or positive amount</t>
-      <t id="3">Non-valid transaction: not enough money in player and manager accounts to set this amount</t>
-	  <t id="4">Valid transaction: click OK to complete or Cancel to discard</t>
-	  <t id="5">Transfer from player account: </t>
-	  <t id="6">New player account balance: </t>
-	  <t id="7">Transfer to player account: </t>
-	  <t id="8">Current player account balance: </t>
-	  <t id="9">Current </t>
-	  <t id="10"> account balance: </t>
-	  <t id="11">Set </t>
-	  <t id="12"> account exact: </t>
+      <t id="1">Неверное значение - поле должно содержать 0-9 и 'm', 'M', 'k' или 'K' - прим. 12345 200k или 30M</t>
+      <t id="2">Неверное значение: должно быть 0 или больше</t>
+      <t id="3">Неверное значение: недостаточно среств для указанной суммы</t>
+	  <t id="4">Все верно: нажмите OK для подтверждения или Отмена для выхода</t>
+	  <t id="5">Перевод со счета игрока: </t>
+	  <t id="6">Новый баланс игрока: </t>
+	  <t id="7">Вам будет переведено: </t>
+	  <t id="8">Ваш текущий баланс: </t>
+	  <t id="9">Текущий баланс </t>
+	  <t id="10"> : </t>
+	  <t id="11">Укажите сумму переводимую для </t>
+	  <t id="12"> : </t>
     </page>
-  </add>
-</diff>
+</language>

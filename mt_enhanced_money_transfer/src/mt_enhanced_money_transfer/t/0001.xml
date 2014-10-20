@@ -1,17 +1,16 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-	Text file for MitchTech Enhanced Money Transfer.
+	Base (english) text file for MitchTech Enhanced Money Transfer.
 	
 	Author: wysiwyg
   
 	Last Change:
-	Version: V1.03
+	Version: V1.0
 	Date: 20th October 2014
   
 	X Rebirth version: 2.50
 -->
-<diff xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="rfc5261.xsd">
-  <add sel="/language[@id='33']">
+<language>  
     <page id="150400" title="MitchTech Enhanced Money Transfer" descr="Texts for enhanced money transfer mod." voice="no">
       <!-- 1-99: General Texts -->
       <t id="1">Invalid entry - the text box must contain digits 0-9 and 'm', 'M', 'k' or 'K' - e.g. 12345 200k or 30M</t>
@@ -27,5 +26,4 @@
 	  <t id="11">Set </t>
 	  <t id="12"> account exact: </t>
     </page>
-  </add>
-</diff>
+</language>	
