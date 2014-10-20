@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<content id="ws_329056454" name="MitchTech Enhanced Money Transfer" description="Replaces the vanilla money transfer dialog with a better one" author="wysiwyg" version="102" date="2014-10-19" save="false" sync="false" lastupdate="1413752890">
+<content id="ws_329056454" name="MitchTech Enhanced Money Transfer" description="Replaces the vanilla money transfer dialog with a better one" author="wysiwyg" version="103" date="2014-10-20" save="false" sync="false" lastupdate="1413791282">
   <dependency version="250"/>
+  <text language="7" name="Enhanced Money Transfer" description="Replaces the vanilla money transfer dialog with a better one" author="wysiwyg"/>
+  <text language="33" name="Enhanced Money Transfer" description="Replaces the vanilla money transfer dialog with a better one" author="wysiwyg"/>
+  <text language="34" name="Enhanced Money Transfer" description="Replaces the vanilla money transfer dialog with a better one" author="wysiwyg"/>
+  <text language="39" name="Enhanced Money Transfer" description="Replaces the vanilla money transfer dialog with a better one" author="wysiwyg"/>
   <text language="44" name="Enhanced Money Transfer" description="Replaces the vanilla money transfer dialog with a better one" author="wysiwyg"/>
+  <text language="49" name="Enhanced Money Transfer" description="Replaces the vanilla money transfer dialog with a better one" author="wysiwyg"/>
+  <text language="86" name="Enhanced Money Transfer" description="Replaces the vanilla money transfer dialog with a better one" author="wysiwyg"/>
+  <text language="88" name="Enhanced Money Transfer" description="Replaces the vanilla money transfer dialog with a better one" author="wysiwyg"/>
 </content>
