@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<content id="wysiwyg150402" name="Wysiwyg's Modding Tools" description="Various convenience tools for modders" author="wysiwyg" version="100" date="2014-10-12" save="false">
+  <dependency version="250"></dependency>
+  <text language="44" name="Wysiwyg's Modding Tools" description="Various convenience tools for modders" author="wysiwyg" />
+</content>

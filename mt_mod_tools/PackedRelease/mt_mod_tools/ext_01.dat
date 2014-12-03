@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<content id="wysiwyg150402" name="Wysiwyg's Modding Tools" description="Various convenience tools for modders" author="wysiwyg" version="100" date="2014-10-12" save="false">
+  <dependency version="250"></dependency>
+  <text language="44" name="Wysiwyg's Modding Tools" description="Various convenience tools for modders" author="wysiwyg" />
+</content>
+<?xml version="1.0" encoding="utf-8"?>
+<mdscript name="MT_Mod_Tools" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
+	<cues>
+		<cue name="SectionHandler_MT_ReloadUI" instantiate="false" namespace="this">
+			<conditions>
+				<check_any>
+					<event_conversation_next_section sectionprefix="gMT_ReloadUI" />
+					<event_conversation_returned_to_section sectionprefix="gMT_ReloadUI" />
+				</check_any>
+			</conditions>
+			<actions>
+				<speak actor="player.computer" priority="0">
+					<text line="131" comment="[Betty]: Affirmitive" />
+				</speak>
+				<open_conversation_menu menu="gMT_ReloadUI" param="[0,0]"/>
+				<add_conversation_view view="closeupdetailmonitor"/>
+				<!-- Reset our cue for the next time -->
+				<reset_cue cue="this" />
+			</actions>
+		</cue>
+	</cues>
+</mdscript>
+<?xml version="1.0" encoding="utf-8"?>
+<diff xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <add sel="/addon[@name='detailmonitor']/dependency" pos="before">
+	<file name="MT_ReloadUI.lua" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <add sel="/addon[@name='mainmenu']/dependency" pos="before">
+    <file name="mainmenu_mt_mod_tools.lua" />
+  </add>
+</diff>
