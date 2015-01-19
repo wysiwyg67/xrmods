@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<content id="ws_329056454" name="MitchTech Enhanced Money Transfer" description="Replaces the vanilla money transfer dialog with a better one" author="wysiwyg" version="110" date="2014-12-08" save="false">
+  <dependency version="251"></dependency>
+  <text language="44" name="Enhanced Money Transfer" description="Replaces the vanilla money transfer dialog with a better one" author="wysiwyg" />
+</content>

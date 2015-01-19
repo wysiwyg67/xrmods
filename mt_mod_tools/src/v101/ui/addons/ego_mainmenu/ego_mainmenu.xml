@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <add sel="/addon[@name='ego_mainmenu']/dependency" pos="before">
+    <file name="..\..\..\extensions\mt_mod_tools\ui\addons\ego_mainmenu\mainmenu_mt_mod_tools.lua" />
+  </add>
+</diff>

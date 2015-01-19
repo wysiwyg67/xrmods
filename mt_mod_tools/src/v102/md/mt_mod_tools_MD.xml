@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mdscript name="MT_Mod_Tools" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
+	<cues>
+		<cue name="SectionHandler_MT_ReloadUI" instantiate="false" namespace="this">
+			<conditions>
+				<check_any>
+					<event_conversation_next_section sectionprefix="gMT_tools_ReloadUI" />
+					<event_conversation_returned_to_section sectionprefix="gMT_tools_ReloadUI" />
+				</check_any>
+			</conditions>
+			<actions>
+				<speak actor="player.computer" priority="0">
+					<text line="131" comment="[Betty]: Affirmitive" />
+				</speak>
+				<open_conversation_menu menu="gMT_ReloadUI"/>
+				<!-- Reset our cue for the next time -->
+				<reset_cue cue="this" />
+			</actions>
+		</cue>
+ 	
+		<cue name="SectionHandler_MT_WarpPlayer" instantiate="false" namespace="this">
+			<conditions>
+				<check_any>
+					<event_conversation_next_section sectionprefix="gMT_tools_WarpPlayerShip" />
+					<event_conversation_returned_to_section sectionprefix="gMT_tools_WarpPlayerShip" />
+				</check_any>
+			</conditions>
+			<actions>
+				<do_if value="event.param == 'gMT_tools_WarpPlayerShip'">
+					<open_conversation_menu menu="MapMenu" param="[0, 0, 'sector', player.primaryship.sector, null, null, 'selectzone', ['gMT_tools_WarpPlayerShip_zoneselected']]" />
+					<add_conversation_view view="closeupdetailmonitor" />
+					<debug_text text="'MT MOD TOOLS: Next section: ' + event.param + '  ' + event.param2" />
+				</do_if>
+				<do_elseif value="event.param == 'gMT_tools_WarpPlayerShip_zoneselected'">
+					<debug_text text="'MT MOD TOOLS: Next section: ' + event.param + '   ' + event.param2" />
+					<debug_text text="'MT MOD TOOLS: WE HAVE SUCCESSFULLY CALLED THE NEXT SECTION:'" />
+					<debug_text text="'MT MOD TOOLS: The zone selected was:  ' + event.param2.{3}.name" />
+					<speak actor="player.entity" priority="0">
+						<text line="103081" comment="[Ren]: I'm getting us out of here!" />
+					</speak>
+					<warp object="player.primaryship" zone="event.param2.{3}" />
+				</do_elseif>
+				<reset_cue cue="this" />
+			</actions>
+		</cue>
+
+		<cue name="SectionHandler_MT_RewardPlayer" instantiate="false" namespace="this">
+			<conditions>
+				<check_any>
+					<event_conversation_next_section sectionprefix="gMT_tools_AddPlayerMoney" />
+					<event_conversation_returned_to_section sectionprefix="gMT_tools_AddPlayerMoney" />
+				</check_any>
+			</conditions>
+			<actions>
+				<do_if value="event.param == 'gMT_tools_AddPlayerMoney'">
+					<open_conversation_menu menu="PlayerMoneyTransferMenu"/>
+					<add_conversation_view view="closeupdetailmonitor" />
+				</do_if>
+				<do_elseif value="event.param == 'gMT_tools_AddPlayerMoney_amount'">
+					<set_value name="$cash_amount" exact="event.param2" />
+					<debug_text text="'MT MOD TOOLS:   ' + $cash_amount" />
+					<reward_player money = "($cash_amount)Cr" />
+				</do_elseif>
+				<reset_cue cue="this" />
+			</actions>
+		</cue>
+
+		<cue name="SectionHandler_MT_AddShip" instantiate="false" namespace="this">
+			<conditions>
+				<check_any>
+					<event_conversation_next_section sectionprefix="gMT_ship_AddShip" />
+					<event_conversation_returned_to_section sectionprefix="gMT_ship_AddShip" />
+				</check_any>
+			</conditions>
+			<actions>
+				<do_if value="event.param == 'gMT_ship_AddShip'">
+					<open_conversation_menu menu="gMT_menu_ship_AddShip"/>
+					<add_conversation_view view="closeupdetailmonitor" />
+				</do_if>
+				<do_elseif value="event.param == 'gMT_ship_AddShip_selected'">
+					<set_value name="$ship_macro" exact="event.param2.{1}" />
+					<set_value name="$ship_name" exact="event.param2.{2}" />
+					<set_value name="$ship_faction" exact="event.param2.{3}" />
+					<debug_text text="'MT MOD TOOLS: Building ship:   ' + $ship_macro + ' - ' + $ship_name + ' - ' + $ship_faction" />
+					<create_ship name="$ship_name" macro="$ship_macro" zone="player.zone">
+						<name exact="event.param2.{2}" />
+						<owner exact="faction.player" overridenpc="true"/>
+						<pilot actor="null"/>
+						<defence actor="null"/>
+						<engineer actor="null"/>
+						<cargo>
+							<wares list="[ware.fuelcells]">
+								<fillpercent exact="100"/>
+							</wares>
+						</cargo>
+						<units>
+							<unit category="unitcategory.transport" mk="1" exact="20"/>
+							<unit category="unitcategory.welder" mk="1" exact="20"/>
+						</units>
+						<safepos object="player.primaryship" x="1km" y="0km" z="1km"/>
+						<rotation pitch="0deg" roll="0deg" yaw="0deg" />
+					</create_ship>
+					<debug_text text="'MT MOD TOOLS: Built ship:   ' + $ship_macro + ' - ' + faction.player + ' - ' + $ship_faction" />
+					<set_value name="$ship_newname" exact="event.param2.{2}" />
+					<signal_cue_instantly cue="MT_ShipRename" param="[$ship_name,$ship_newname]" />
+				</do_elseif>
+				<reset_cue cue="this" />
+			</actions>
+		</cue>
+		
+		<cue name="MT_ShipRename" instantiate="false" namespace="this">
+		<conditions>
+			<check_any>
+				<event_cue_signalled cue="this"/>
+			</check_any>
+		</conditions>
+		<actions>
+			<debug_text text="'Passed Parameters:   ' + event.param.{1} + '   ' + event.param.{2}" />
+			<open_conversation_menu menu="gMT_ship_Rename" param="[0,0,event.param.{1},event.param.{2}]" />
+			<reset_cue cue="this" />
+		</actions>
+		</cue>
+		
+	</cues>
+</mdscript>

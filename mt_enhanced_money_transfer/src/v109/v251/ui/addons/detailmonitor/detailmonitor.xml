@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <replace sel="/addon/file[@name='menu_moneytransfer.lua']">
+    <file name="..\..\..\extensions\mt_enhanced_money_transfer\ui\addons\detailmonitor\MT_enhanced_moneytransfer.lua" />
+  </replace>
+</diff>
