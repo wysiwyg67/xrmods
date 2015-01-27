@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!-- 
+French translation file for MitchTech Enhanced Money Transfer. 
+Note: The game doesn't know if the NPC job is a word requiring elision (http://en.wikipedia.org/wiki/Elision_%28French%29) 
+Example: 
+- architecte -> élision -> "solde du compte de l'architecte" 
+- manager -> pas d'élision -> "solde du compte du manager" 
+Consequence: the translation is not the best possible, notably for fields 9 to 12 
+Author: Ronkhar 
+Version: V1.0 
+Date: 26th January 2015 
+X Rebirth version: 3.1 
+--> 
+<language> 
+<page id="150400" title="MitchTech Enhanced Money Transfer" descr="Texts for enhanced money transfer mod." voice="no"> 
+<!-- 1-99: General Texts --> 
+<t id="1">Texte incorrect : N'écrivez que des chiffres suivis de m ou M pour les millions ou bien de k ou K pour les milliers (par exemple '12345', '200k' ou '30M')</t> 
+<t id="2">Transaction impossible : le solde souhaité doit être positif ou nul</t> 
+<t id="3">Transaction impossible : le solde du compte débité est insuffisant.</t> 
+<t id="4">Le montant choisi est valide - confirmez ou annulez la transaction</t> 
+<t id="5">Le joueur va être débité de</t> 
+<t id="6">Le solde du joueur sera alors</t> 
+<t id="7">Le joueur va être crédité de</t> 
+<t id="8">Le solde actuel du joueur est</t> 
+<t id="9"></t> 
+<t id="10"> - le solde actuel est</t> 
+<t id="11"></t> 
+<t id="12"> - inscrire le solde souhaité</t> 
+</page> 
+</language>
