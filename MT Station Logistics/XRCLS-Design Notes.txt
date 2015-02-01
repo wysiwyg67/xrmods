@@ -1,0 +1,93 @@
+2015-01-24 - Notes for data structures
+
+TRADER - global.$XRCLS.$lTradeShips.{<ship_index>
+
+<ship_index>
+	[
+1		$oShip				-- The ship object ID
+2		$oHomebase			-- The assigned homebase OR "none"
+3		[ <cargo_list> ]	-- A list containing the cargo capacity of the ship
+4		[ <waypoints> ]		-- A list containing the waypoints for the ship
+5		$iLevel				-- The level (range, crewskill etc) that the ship is operating at
+6		$iCrewScore			-- The crew's score derived from the crew combinedskill value
+7		[ <ship_log> ]		-- The ship's log
+8		$iIsActive			-- Integer indicating activity 0 = None, 1 = Trading, 2 = Mining
+9		[ <ship_stats> ]	-- The ship's trading stats
+10		$iIndex				-- The ships index in the global $lTradeShips list
+11		$iNumWaypoints		-- The number of waypoints in the <waypoint> list
+12		$lTrackLog			-- Tracking log for ship
+13		$iDbgLvl			-- The debugging level for this ship 0=normal 1=verbose
+14		$iTrack				-- True (1) if tracking ship
+	]
+
+<cargo_list>
+	[
+1		$iFuelStorage		-- Amount of cargo space for fuel cells
+2		$iBulkStorage		-- Amount of cargo space for bulk wares
+3		$iContainerStorage	-- Amount of cargo space for container wares
+4		$iEnergyStorage		-- Amount of cargo space for energy wares
+5		$iLiquidStorage		-- Amount of cargo space for liquid wares
+	]
+	
+<waypoints>
+	[
+1		$iIndex				-- The waypoint's list index
+2		$bIsActive			-- true if the waypoint is switched on by the user
+3		$oStation			-- The target station
+4		$iType				-- The waypoint type (buy, sell, fly to, ... etc.)
+5		$tWare				-- The type of ware being transported
+6		$iMinAmount			-- The minimum amount that the ship should consider moving for
+7		$iMaxAmount			-- The maximum amount of the ware that the ship should carry at any given time
+8		$iPrice				-- minimum sell price OR maximum buy price depending on WP type
+9		$iRange				-- WP range 1 = sector, 2 = system, 3 = galaxy
+10		$iOverride			-- Set to false by the game to stop out of range trades
+	]
+	
+<ship_log>
+	[
+1		player.age			-- Log entry timestamp
+2		$iMsgID				-- Type of log entry - values TBD
+3		$aTradeRetArg		-- Return value from each logged WP
+4		this.ship			-- The ID of the ship
+5		$oHomebase			-- The ship's homebase
+6		$iWPType			-- The type of the waypoint
+7		$oStation			-- The WP target station
+8		$tWare				-- The traded ware
+9		$iVolume			-- The volume(units) traded (number of wares - not CC)
+10		$iUnitPrice			-- Ware price per unit
+11		$iCaptainsWage		-- Salary paid to captain
+12		$iDefenceWage		-- Salary paid to DO
+13		$iEngineerWage		-- Salary paid to Engineer
+14		$iXPoints			-- Experience points earned
+15		$tFlyingTime		-- Flight time for the waypoint
+	]
+	
+<ship_stats>
+	[
+1		$tFlyingTime		-- Total Time spent flying WPs
+2		$tTotalTime			-- Total active time
+3		$iCubicMetres		-- Total Volume (cc) traded in M3
+4		$iTurnover			-- Total value of goods traded
+	]
+	
+Entity vars
+<entity_data>
+	[
+1		$bActive			-- Entity is configured
+2		$tTimeLogged		-- Total flight time logged
+3		$iSalary			-- Total salary earned
+4		$iXPoints			-- Total XP earned
+5		$iXPtoSpend			-- Total XP available for training
+6		[ <log> ]			-- Not used for now
+	]
+	
+	
+	Styrvok 52000 container - max selects 4333 bio-opt vol 12
+	
+	
+	
+
+	
+	
+	
+	

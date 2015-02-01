@@ -3,6 +3,8 @@ REM Version 1.0
 REM Date 2014-12-04
 @ECHO OFF
 set version=%1
+rmdir ..\release\%version%\mt_mod_tools\
+mkdir ..\release\%version%\mt_mod_tools\
 
 REM update the .xpl files
 FOR /R ..\src\%version%\ %%F IN (*.xpl) DO (rename %%~F %%~nF.old)

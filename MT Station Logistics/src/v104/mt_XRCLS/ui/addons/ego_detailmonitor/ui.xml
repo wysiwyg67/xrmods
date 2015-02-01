@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <add sel="/addon[@name='ego_detailmonitor']/dependency" pos="before">
+    <file name="..\..\..\extensions\mt_XRCLS\ui\addons\ego_detailmonitor\MT_Station_Logistics_Admin_Menu.lua" />
+    <file name="..\..\..\extensions\mt_XRCLS\ui\addons\ego_detailmonitor\MT_Station_Logistics_Reports_Menu.lua" />
+    <file name="..\..\..\extensions\mt_XRCLS\ui\addons\ego_detailmonitor\MT_Station_Logistics_Config_Menu.lua" />
+    <file name="..\..\..\extensions\mt_XRCLS\ui\addons\ego_detailmonitor\MT_Station_Logistics_Select_Ship.lua" />
+    <file name="..\..\..\extensions\mt_XRCLS\ui\addons\ego_detailmonitor\MT_Station_Logistics_ListWaypoints.lua" />
+	<file name="..\..\..\extensions\mt_XRCLS\ui\addons\ego_detailmonitor\MT_Station_Logistics_EditWaypoint.lua" />
+	<file name="..\..\..\extensions\mt_XRCLS\ui\addons\ego_detailmonitor\MT_Station_Logistics_CrewLog.lua" />
+	<file name="..\..\..\extensions\mt_XRCLS\ui\addons\ego_detailmonitor\MT_Station_Logistics_ShipLog.lua" />
+	<file name="..\..\..\extensions\mt_XRCLS\ui\addons\ego_detailmonitor\MT_Station_Logistics_AdminLog.lua" />
+	<file name="..\..\..\extensions\mt_XRCLS\ui\addons\ego_detailmonitor\MT_Station_Logistics_Rename.lua" />
+	<file name="..\..\..\extensions\mt_XRCLS\ui\addons\ego_detailmonitor\lib\LibMT.lua" />
+  </add>
+</diff>

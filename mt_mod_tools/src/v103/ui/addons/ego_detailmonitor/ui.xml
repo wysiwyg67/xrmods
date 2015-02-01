@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <add sel="/addon[@name='ego_detailmonitor']/dependency" pos="before">
+	<file name="..\..\..\extensions\mt_mod_tools\ui\addons\ego_detailmonitor\MT_ReloadUI.lua" />
+	<file name="..\..\..\extensions\mt_mod_tools\ui\addons\ego_detailmonitor\MT_tools_player_moneytransfer.lua" />
+	<file name="..\..\..\extensions\mt_mod_tools\ui\addons\ego_detailmonitor\MT_ship_AddShip.lua" />
+	<file name="..\..\..\extensions\mt_mod_tools\ui\addons\ego_detailmonitor\MT_ship_Rename.lua" />
+  </add>
+</diff>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+	<add sel="/aiscript/attention/actions/do_all/set_value[@name='$subordinate']" pos="after">
+		<!-- Stops the newly appointed manager assigning CLS ships to normal station duty -->
+		<debug_text  text="'MT Logistics trade.station.player vanilla script patch - subordinate %1'.[$subordinate.name]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)" />
+		<do_if value="@$subordinate.pilot.$XRCLS and @$subordinate.pilot.$XRCLS.{1} == true">
+			<debug_text  text="'Manager Ignoring Ship - %1 as it is a CLS Ship'.[$subordinate.name]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)" />
+			<continue />
+		</do_if>
+	</add>
+</diff>

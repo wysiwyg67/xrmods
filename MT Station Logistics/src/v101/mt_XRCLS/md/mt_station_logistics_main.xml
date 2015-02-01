@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MT Station Logistics -->
+<!-- Version 1.0 - 2014-12-06 -->
+<!-- This MD script handles the main functions and admin of the mod -->
+<!--  mdscript name="XRCLS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd" -->
+<mdscript name="XRCLS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="C:\Users\andy\Dropbox (Personal)\Games\XRebirth\modwip\Resources\md.xsd">
+	<cues>
+		<!-- Initialise the mod on game start and on a new game -->
+		<cue name="Initialise" instantiate="false" namespace="this">
+			<conditions>
+				<check_any>
+					<!-- Will fire once on every game load, but not on new game -->
+					<event_player_created />
+					<!-- Will fire as long as game is less than 20 seconds old -->
+					<event_cue_signalled cue="md.Setup.GameStart" />
+				</check_any>
+			</conditions>
+			<actions>
+				<!-- Set the mod name "MT Station Logitics" -->
+				<set_value name="$sName" exact="{150402,1}" />
+
+				<!-- Version number -->
+				<set_value name="$iMajVer" exact="1" />
+				<set_value name="$iMinVer" exact="0" />
+				<set_value name="$iBugfixVer" exact="1" />
+        
+				<!-- Create a mod config descriptors container if it doesn't exist -->
+				<do_if value="not global.$XRCLS?">
+					<create_cue_actor name="$dConfig" cue="md.XRCLS.DescriptorsContainer" />
+					<set_value name="global.$XRCLS" exact="$dConfig" />
+				</do_if>
+				<do_else>
+					<!-- It does exist so load it -->
+					<set_value name="$dConfig" exact="global.$XRCLS" />
+				</do_else>
+				
+				<!-- Mod debug level -->
+				<!-- Set the global debug level here (0 - Error; 1 - Info; 2 - Fine; 3 - Finest) -->
+				<set_value name="$dConfig.$iDebugLevel" exact="0" />
+				<debug_text text="{150402,9994}.[$sName,$dConfig.$iDebugLevel]" filter="scripts_verbose" chance="100 * ($dConfig.$iDebugLevel ge 1)" />
+			
+				<!-- Signal the initialisation cue -->
+				<signal_cue_instantly cue="md.XRCLS.GenericInit" param="[$sName,$dConfig,$iMajVer,$iMinVer,$iBugfixVer]" />
+
+				<!-- Initialise various lists used in the mod -->
+				<do_if value="not global.$XRCLS.$lTradeShips?">
+					<set_value name="global.$XRCLS.$lTradeShips" exact="[]"/>			<!-- Add a new empty trader fleet list -->
+				</do_if>
+
+				<do_if value="not global.$XRCLS.$lAdminLog?">
+					<set_value name="global.$XRCLS.$lAdminLog" exact="[]"/>				<!-- Add a new empty admin log list -->
+				</do_if>
+
+				<!-- THESE TO BE DEPRACATED -->
+				<do_if value="not global.$XRCLS.$lActiveTradeShips?">					<!-- Add a check for first time initialisation of the trader list -->
+					<set_value name="global.$XRCLS.$lActiveTradeShips" exact="[]"/>		<!-- Add a new empty trader fleet list -->
+				</do_if>
+				<do_if value="not global.$XRCLS.$lInactiveTradeShips?">					<!-- Add a check for first time initialisation of the inactive trader list -->
+					<set_value name="global.$XRCLS.$lInactiveTradeShips" exact="[]"/>	<!-- Add a new empty inactive trader fleet list -->
+				</do_if>
+				<!-- THESE TO BE DEPRACATED -->
+
+
+				<do_if value="not global.$XRCLS.$lConfiguredNPCs?">						<!-- Check if we have a list of configured NPCs set up -->
+					<set_value name="global.$XRCLS.$lConfiguredNPCs" exact="[]"/>		<!-- Add one if not -->
+				</do_if>
+				<do_if value="not global.$XRCLS.$lExpandStates?">
+					<set_value name="global.$XRCLS.$lExpandStates" exact="[]"/>			<!-- Add a check for first time initialisation of the menu expand states -->
+					<set_value name="global.$XRCLS.$lExpandStates.{1}" exact="[0, 0, [null, null]]"/>	<!-- Add a new closed list for the ship select menu -->
+					<set_value name="global.$XRCLS.$lExpandStates.{2}" exact="[null, null]"/>			<!-- Add a new closed list for the Reports menu -->
+				</do_if>
+
+				<!-- DEPRACATE: Log to be in trader variable. set up list for trader logging -->
+				<do_if value="not global.$XRCLS.$lTraderLog?">
+					<set_value name="global.$XRCLS.$lTraderLog" exact="[]"/>
+				</do_if>
+				<!-- DEPRACATE -->
+				
+				<!-- Finally, we reset the cue so that it will trigger again on next game load -->
+				<reset_cue cue="this" />
+			</actions>
+		</cue>	
+
+		<!--	Generic mod initialisation cue.
+				It expects parameters in the following form:
+				event.param.{1} - name of the mod
+				event.param.{2} - the config container of the mod
+				event.param.{3} - major version number
+				event.param.{4} - minor version number
+				event.param.{5} - bugfix version number
+		-->
+		<cue name="GenericInit" instantiate="true" namespace="this">
+			<conditions>
+				<event_cue_signalled />
+			</conditions>
+			<actions>
+				<set_value name="$sName" exact="event.param.{1}" />
+				<set_value name="$dConfig" exact="event.param.{2}" />
+
+				<!-- Library version number -->
+				<set_value name="$iMajVer" exact="event.param.{3}" />
+				<set_value name="$iMinVer" exact="event.param.{4}" />
+				<set_value name="$iBugfixVer" exact="event.param.{5}" />
+				<set_value name="$sVersion" exact="'%1.%2.%3'.[$iMajVer, $iMinVer, $iBugfixVer]" />
+
+				<set_value name="$sInstallMsg" exact="@event.param.{6}" />
+				<set_value name="$sUpgradeMsg" exact="@event.param.{7}" />
+        
+				<!-- Check for version -->
+				<do_if value="not $dConfig.$iMajVer?">
+					<!-- Write first time installation message to logbook -->
+					<write_to_logbook category="general" text="{150402,9997}.[$sName,$sVersion,'']" />
+          
+					<!-- If an additional installation message was provided, we notify the user -->
+					<set_value name="$sCustomMsg" exact="''" />
+					<do_if value="$sInstallMsg != null">
+						<set_value name="$sCustomMsg" exact="{150402,9992}" />
+						<write_to_logbook category="general" text="$sInstallMsg" />
+					</do_if>
+	
+					<!-- Display the message in the center of the screen -->
+					<set_value name="$sMsg" exact="{150402,9997}.[$sName,$sVersion,$sCustomMsg]" />
+					<show_help force="true" custom="$sMsg" duration="5s" />
+				</do_if>
+				<do_elseif value="$dConfig.$iMajVer lt $iMajVer or $dConfig.$iMinVer lt $iMinVer or $dConfig.$iBugfixVer lt $iBugfixVer">
+					<!-- Write upgrade message to logbook -->
+					<write_to_logbook category="general" text="{150402,9998}.[$sName,$dConfig.$sVersion,$sVersion,'']" />
+          
+					<!-- If an additional update message was provided, notify the user -->
+					<set_value name="$sCustomMsg" exact="''" />
+					<do_if value="$sUpgradeMsg != null">
+						<set_value name="$sCustomMsg" exact="{150402,9992}" />
+						<write_to_logbook category="general" text="$sUpgradeMsg" />
+					</do_if>
+          
+					<!-- Display the message in the center of the screen -->
+					<set_value name="$sMsg" exact="{150402,9998}.[$sName,$dConfig.$sVersion,$sVersion,$sCustomMsg]" />
+					<show_help force="true" custom="$sMsg" duration="10s" />
+				</do_elseif>
+				<do_elseif value="$dConfig.$iMajVer gt $iMajVer or $dConfig.$iMinVer gt $iMinVer or $dConfig.$iBugfixVer gt $iBugfixVer">
+					<!-- Show warning for downgrade -->
+					<show_help force="true" custom="{150402,9996}.[$sName,$dConfig.$sVersion,$sVersion]" duration="5s" />
+					<write_to_logbook category="general" text="{150402,9996}.[$sName,$dConfig.$sVersion,$sVersion]" />
+				</do_elseif>
+
+				<!-- Save the version to the config container -->
+				<set_value name="$dConfig.$iMajVer" exact="$iMajVer" />
+				<set_value name="$dConfig.$iMinVer" exact="$iMinVer" />
+				<set_value name="$dConfig.$iBugfixVer" exact="$iBugfixVer" />
+				<set_value name="$dConfig.$sVersion" exact="$sVersion" />
+				
+				<!-- Turn this on and off using debug level < 1 -->
+				<write_to_logbook category="general" text="{150402,9993}.[$sName,$dConfig.$sVersion]" chance="100 * ($dConfig.$iDebugLevel ge 1)" />
+				<show_help force="true" custom="{150402,9993}.[$sName,$dConfig.$sVersion]" duration="5s" chance="100 * ($dConfig.$iDebugLevel ge 1)" />
+        
+				<!-- Reset the cue for clean-up -->
+				<reset_cue cue="this" />
+			</actions>
+		</cue>
+
+		<!-- 	Generic cue to handle un-installation of mods. -->
+		<cue name="GenericUninst" instantiate="true" namespace="this">
+			<conditions>
+				<event_cue_signalled />
+			</conditions>
+			<actions>
+				<set_value name="$sName" exact="event.param.{1}" />
+				<set_value name="$dConfig" exact="event.param.{2}" />
+				<set_value name="$iMajVer" exact="$dConfig.$iMajVer" />
+				<set_value name="$iMinVer" exact="$dConfig.$iMinVer" />
+				<set_value name="$iBugfixVer" exact="$dConfig.$iBugfixVer" />
+				<set_value name="$sVersion" exact="'%1.%2.%3'.[$iMajVer,$iMinVer,$iBugfixVer]" />
+
+				<set_value name="$sUninstallMsg" exact="@event.param.{3}" />
+        
+				<!-- Write uninstallation message to logbook -->
+				<write_to_logbook category="general" text="{150402,9995}.[$sName,$sVersion,'']" />
+
+				<!-- If an additional installation message was provided, we notify the user -->
+				<set_value name="$sCustomMsg" exact="''" />
+				<do_if value="$sUninstallMsg != null">
+					<set_value name="$sCustomMsg" exact="{150402,9992}" />
+					<write_to_logbook category="general" text="$sUninstallMsg" />
+				</do_if>
+
+				<!-- Lastly, we display the message in the center of the screen -->
+				<debug_text filter="scripts_verbose" text="'Uninstalling MT Mod Library - version %1...'.[$sVersion]" chance="100 * (global.$XRCLS.$iDebugLevel ge 1)" />
+				<set_value name="$sMsg" exact="{150402,9995}.[$sName,$sVersion,$sCustomMsg]" />
+				<show_help force="true" custom="$sMsg" duration="10s" />
+			</actions>
+		</cue>
+
+		<!-- 	Cue to uninstall the Mod -->
+		<cue name="Uninstall" instantiate="true" namespace="this">
+			<conditions>
+				<event_cue_signalled />
+			</conditions>
+			<actions>
+				<signal_cue_instantly cue="md.XRCLS.GenericUninst" param="[{150402,1},global.$XRCLS]" />
+				<!-- stop all trading ships -->
+				<do_all exact="global.$XRCLS.$lTradeShips.count" counter="$i">
+					<do_if value="global.$XRCLS.$lTradeShips.{$i}.{8} gt 0">
+						<signal_cue_instantly cue="md.Manage_MT_Logistics.StopCLStrader" param="global.$XRCLS.$lTradeShips.{$i}"/>
+						<debug_text text="'Stopping ship %1'.[global.$XRCLS.$lTradeShips.{$i}.{1}.knownname]" filter="error" chance="100 * (global.$XRCLS.$iDebugLevel ge 0)" />
+					</do_if>
+				</do_all>
+				<!-- Remove stuff from NPCs -->
+				<do_all exact="global.$XRCLS.$lConfiguredNPCs.count" counter="$i">
+					<set_value name="$eEntity" exact="global.$XRCLS.$lConfiguredNPCs.{$i}"/>
+					<remove_value name="$eEntity.$XRCLS"/>
+					<debug_text text="'Removing variable from %1'.[$eEntity.knownname]" filter="error" chance="100 * (global.$XRCLS.$iDebugLevel ge 0)" />
+				</do_all>
+				<remove_cue_actor actor="global.$XRCLS" cue="md.XRCLS.DescriptorsContainer" />
+				<remove_value name="global.$XRCLS" />
+			</actions>
+		</cue>
+
+		<!--	Cue to create descriptors for a given entity. Descriptors are represented
+				by creating a virtual actor and using its blackboard to store the values. -->
+		<cue name="DescriptorsFactory" instantiate="true" namespace="this">
+			<conditions>
+				<event_object_signalled object="player.primaryship" param="'XRCLS_CreateDescriptor'" />
+			</conditions>
+			<actions>
+				<set_value name="$oEntity" exact="event.param2" />
+				<debug_text text="'Creating descriptors for entity \'%1\'...'.[$oEntity.knownname]" filter="error" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)" />
+
+				<create_cue_actor name="$dDesc" cue="DescriptorsContainer" />
+
+				<!-- Set the result -->
+				<set_value name="$oEntity.$dXRCLS_CreateDescriptorResult" exact="$dDesc" />
+			</actions>
+		</cue>
+	
+		<!--	Cue to dispose a given descriptor/virtual actor. -->
+		<cue name="DescriptorsDisposer" instantiate="true" namespace="this">
+			<conditions>
+				<event_object_signalled object="player.primaryship" param="'XRCLS_DisposeDescriptor'" />
+			</conditions>
+			<actions>
+				<set_value name="$dDesc" exact="event.param2" />
+				<debug_text text="'Disposing descriptor/virtual actor \'%1\'...'.[$dDesc.knownname]" filter="error" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)" />
+				<remove_cue_actor cue="DescriptorsContainer" actor="$dDesc" />
+			</actions>
+		</cue>
+
+		<!-- 	This cue is responsible for storing all created descriptors globally. -->
+		<cue name="DescriptorsContainer" instantiate="false" namespace="static">
+			<conditions>
+				<check_any>
+					<!-- Will fire once on every game load, but not on new game -->
+					<event_player_created />
+					<!-- Will fire as long as game is less than 20 seconds old -->
+					<event_cue_signalled cue="md.Setup.GameStart" />
+				</check_any>
+			</conditions>
+		</cue>
+	
+	</cues>
+</mdscript>

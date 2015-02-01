@@ -1,0 +1,835 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MT Station Logistics -->
+<!-- Version 1.0 - 2014-12-06 -->
+<!-- This MD script handles all the side bar menu and detailmonitor driven calls -->
+<!-- mdscript name="Menu_MT_Logistics" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd" -->
+<mdscript name="Menu_MT_Logistics" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="C:\Users\andy\Dropbox (Personal)\Games\XRebirth\modwip\Resources\md.xsd">
+    <cues>
+		<!-- Reports menu handler -->
+		<cue name="SectionHandler_ReportsMenu" instantiate="true" namespace="this">
+			<conditions>
+				<check_any>
+					<event_conversation_next_section sectionprefix="gMT_ReportMenu_"/>
+					<event_conversation_returned_to_section sectionprefix="gMT_ReportMenu_"/>
+				</check_any>
+			</conditions>
+			<actions>
+				<debug_text text="'MTL - Report Menu: param = %1 - param2 = %2 Expand states = %3'.[event.param, event.param2, event.param2.{4}]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+				<!-- Return to admin screen -->
+				<do_if value="event.param == 'gMT_ReportMenu_back'">
+					<!-- Save report menu expand states -->
+					<set_value name="global.$XRCLS.$lExpandStates.{2}" exact="event.param2.{4}"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_Admin" param="event.param2"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_if>
+
+				<!-- Return from ship log screen -->
+				<do_elseif value="event.param == 'gMT_ReportMenu_return'">
+					<set_value name="$iShipIdx" exact="event.param2.{7}.{10}"/>
+					<set_value name="global.$XRCLS.$lTradeShips.{$iShipIdx}.{14}" exact="0"/>
+					<signal_cue_instantly cue="GetShipLists" param="[this]"/>
+					<debug_text text="'MTL - Report Menu: XRCLS Crew: %1'.[global.$XRCLS.$lConfiguredNPCs]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_Reports" param="[event.param2.{4}.{1}, event.param2.{4}.{2}, [], event.param2.{4}, $aReturn.{1}, global.$XRCLS.$lConfiguredNPCs, []]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<remove_value name="$iShipIdx"/>
+				</do_elseif>
+
+				<!-- Return from crew report screens -->
+				<do_elseif value="event.param == 'gMT_ReportMenu_returncrew'">
+					<signal_cue_instantly cue="GetShipLists" param="[this]"/>
+					<debug_text text="'MTL - Report Menu: XRCLS Crew: %1'.[global.$XRCLS.$lConfiguredNPCs]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_Reports" param="[event.param2.{4}.{1}, event.param2.{4}.{2}, [], event.param2.{4}, $aReturn.{1}, global.$XRCLS.$lConfiguredNPCs, []]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_elseif>
+
+				<!-- Return admin log report screens -->
+				<do_elseif value="event.param == 'gMT_ReportMenu_returnadmin'">
+					<signal_cue_instantly cue="GetShipLists" param="[this]"/>
+					<debug_text text="'MTL - Report Menu: XRCLS Admin: %1'.[global.$XRCLS.$lConfiguredNPCs]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_Reports" param="[event.param2.{4}.{1}, event.param2.{4}.{2}, [], event.param2.{4}, $aReturn.{1}, global.$XRCLS.$lConfiguredNPCs, []]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_elseif>
+
+				<!-- Toggle ship debug level -->
+				<do_elseif value="event.param == 'gMT_ReportMenu_toggleDbg'">
+					<set_value name="$oShip" exact="event.param2.{7}.{1}"/>
+					<set_value name="$iShipIdx" exact="event.param2.{7}.{10}"/>
+					<set_value name="$iNewDbg" exact="event.param2.{3}"/>
+					<set_value name="global.$XRCLS.$lTradeShips.{$iShipIdx}.{13}" exact="$iNewDbg"/>
+					<debug_text text="'MTL - Report Menu: Debug level: %1'.[global.$XRCLS.$lTradeShips.{$iShipIdx}.{13}]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<signal_objects object="$oShip" param="'XRCLS_UpdateShipDbgLvl'" param2="$iNewDbg"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_ShipLog" param="[event.param2.{4}.{1}, event.param2.{4}.{2}, [], event.param2.{4}, [], [], global.$XRCLS.$lTradeShips.{$iShipIdx}]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<remove_value name="$iShipIdx"/>
+					<remove_value name="$iNewDbg"/>
+				</do_elseif>
+
+				<!-- Toggle ship tracking level -->
+				<do_elseif value="event.param == 'gMT_ReportMenu_toggleTracking'">
+					<set_value name="$oShip" exact="event.param2.{7}.{1}"/>
+					<set_value name="$iShipIdx" exact="event.param2.{7}.{10}"/>
+					<set_value name="$iNewTrk" exact="event.param2.{3}"/>
+					<set_value name="global.$XRCLS.$lTradeShips.{$iShipIdx}.{14}" exact="$iNewTrk"/>
+					<debug_text text="'MTL - Report Menu: Debug level: %1'.[global.$XRCLS.$lTradeShips.{$iShipIdx}.{14}]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<signal_objects object="$oShip" param="'XRCLS_UpdateShipTrkLvl'" param2="$iNewTrk"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_ShipLog" param="[event.param2.{4}.{1}, event.param2.{4}.{2}, [], event.param2.{4}, [], [], global.$XRCLS.$lTradeShips.{$iShipIdx}]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<remove_value name="$iShipIdx"/>
+					<remove_value name="$iNewTrk"/>
+				</do_elseif>
+
+				<!-- Update the tracking display -->
+				<do_elseif value="event.param == 'gMT_ReportMenu_updateTracking'">
+					<set_value name="$iShipIdx" exact="event.param2.{7}.{10}"/>
+					<debug_text text="'MTL - Report Menu: Debug level: %1'.[global.$XRCLS.$lTradeShips.{$iShipIdx}.{14}]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_ShipLog" param="[event.param2.{4}.{1}, event.param2.{4}.{2}, [], event.param2.{4}, [], [], global.$XRCLS.$lTradeShips.{$iShipIdx}]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<remove_value name="$iShipIdx"/>
+				</do_elseif>
+
+				<!-- Show ship report screen -->
+				<do_elseif value="event.param == 'gMT_ReportMenu_shiplog'">
+					<set_value name="$lAdminLog" exact="global.$XRCLS.$lAdminLog"/>
+					<set_value name="$lParam2" exact="event.param2"/>
+					<append_to_list name="$lParam2" exact="$lAdminLog"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_ShipLog" param="$lParam2"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_elseif>
+
+				<!-- Show admin log report screen -->
+				<do_elseif value="event.param == 'gMT_ReportMenu_adminlog'">
+					<set_value name="$lAdminLog" exact="global.$XRCLS.$lAdminLog"/>
+					<set_value name="$lParam2" exact="event.param2"/>
+					<append_to_list name="$lParam2" exact="$lAdminLog"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_AdminLog" param="$lParam2"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_elseif>
+
+				<!-- Train a crew member -->
+				<do_elseif value="event.param == 'gMT_ReportMenu_train'">
+					<set_value name="$oEntity" exact="event.param2.{3}.{2}"/>
+					<set_value name="$tSkillType" exact="skilltype.{event.param2.{5}.{7}}"/>
+					<set_value name="$iMoney" exact="event.param2.{5}.{3}"/>
+					<set_value name="$iXP" exact="event.param2.{5}.{4}"/>
+					<!-- Add the skill -->
+					<add_skill entity="$oEntity" type="$tSkillType" exact="1"/>
+					<!-- Reduce player cash -->
+					<reward_player money="- $iMoney"/>
+					<!-- reduce available entity XP to spend -->
+					<set_value name="$oEntity.$XRCLS.{5}" exact="$iXP" operation="subtract"/>
+					<!-- Return to skills menu -->
+					<open_conversation_menu menu="gMT_Station_Logistics_CrewLog" param="event.param2"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<!-- Clean up-->
+					<remove_value name="$oEntity"/>
+					<remove_value name="$tSkillType"/>
+					<remove_value name="$iMoney"/>
+					<remove_value name="$iXP"/>
+				</do_elseif>
+
+				<!-- Rename a crew member -->
+				<do_elseif value="event.param == 'gMT_ReportMenu_rename'">
+					<open_conversation_menu menu="gMT_Station_Logistics_Rename" param="event.param2"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_elseif>
+
+				<!-- Return from Rename a crew member -->
+				<do_elseif value="event.param == 'gMT_ReportMenu_rename_return'">
+					<open_conversation_menu menu="gMT_Station_Logistics_CrewLog" param="event.param2"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_elseif>
+
+				<!-- Test increase XP -->
+				<do_elseif value="event.param == 'gMT_ReportMenu_testxp'">
+					<set_value name="$oEntity" exact="event.param2.{3}.{2}"/>
+					<set_value name="$tSkillType" exact="skilltype.{event.param2.{5}.{7}}"/>
+					<set_value name="$iMoney" exact="event.param2.{5}.{3}"/>
+					<set_value name="$iXP" exact="event.param2.{5}.{4}"/>
+					<set_value name="$oEntity.$XRCLS.{4}" exact="1000000" operation="add"/>
+					<set_value name="$oEntity.$XRCLS.{5}" exact="1000000" operation="add"/>
+
+					<!-- Return to skills menu -->
+					<open_conversation_menu menu="gMT_Station_Logistics_CrewLog" param="event.param2"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<!-- Clean up-->
+					<remove_value name="$oEntity"/>
+					<remove_value name="$tSkillType"/>
+					<remove_value name="$iMoney"/>
+					<remove_value name="$iXP"/>
+				</do_elseif>
+
+				<!-- Crew training/log screen -->
+				<do_elseif value="event.param == 'gMT_ReportMenu_crewskills'">
+					<open_conversation_menu menu="gMT_Station_Logistics_CrewLog" param="event.param2"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_elseif>
+				
+				<!-- Unhandled return event -->
+				<do_else>
+					<!-- Unhandled section value -->
+					<debug_text text="'ERROR: Unhandled Reports menu event: %1'.[event.param]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 1)"/>
+				</do_else>
+
+			</actions>			
+		</cue>
+		
+		<!-- Waypoint List menu handler cue -->
+		<cue name="SectionHandler_WaypointListMenu" instantiate="true" namespace="this">
+			<conditions>
+				<check_any>
+					<event_conversation_returned_to_section sectionprefix="gMT_WPListMenu_"/>
+					<event_conversation_next_section sectionprefix="gMT_WPListMenu_"/>
+				</check_any>
+				<check_value value="global.$XRCLS?" />
+			</conditions>
+			<actions>
+				<debug_text text="'MTL Waypoint List menu: event.param2 = %1'.[event.param2]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+
+				<!-- Call up the edit waypoint screen -->
+				<do_if value="event.param == 'gMT_WPListMenu_editwaypoint'">
+					<!-- Save temp parameter? -->
+					<set_value name="global.$lTempparam2" exact="event.param2"/>
+					<!-- get a list of station products if a station is selected -->
+					<set_value name ="$lSelectedStation" exact="event.param2.{7}.{3}"/>
+					<set_value name="$lWareList" exact="[]"/>
+					<do_if value="@$lSelectedStation.exists">
+						<set_value name="$lWareList" exact="[$lSelectedStation.resources.list, $lSelectedStation.products.list, $lSelectedStation.tradewares.list]"/>
+					</do_if>
+					<debug_text text="'Add/edit a waypoint ep2(4): %1 ep2(5) %2  ep2(6) = %3'.[event.param2.{4}, event.param2.{5}, event.param2.{6}]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_EditWaypoint" param="[0, 0, [], event.param2.{4}, [], event.param2.{6}, event.param2.{7}, $lWareList]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_if>
+				
+				<!-- deal with return from waypoint edit screen -->
+				<do_elseif value="event.param == 'gMT_WPListMenu_return'">
+					<!-- Get our return parameters back -->
+					<set_value name="$lRet" exact="global.$lTempparam2"/>
+					<remove_value name="global.$XRCLS.$tempparam"/>
+					<set_value name="$iTopRow" exact="$lRet.{4}.{1}"/>
+					<set_value name="$iSelRow" exact="$lRet.{4}.{2}"/>
+					<set_value name="$lRet.{4}.{4}" exact="event.param2.{4}.{4}"/>
+					<debug_text text="'Done adding/editing waypoint %1'.[$lRet.{4}]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_ListWaypoints" param="[$iTopRow, $iSelRow, [], $lRet.{4}, [], event.param2.{6}, event.param2.{7}]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<remove_value name="$lRet"/>
+					<remove_value name="$iTopRow"/>
+					<remove_value name="$iSelRow"/>
+				</do_elseif>
+				
+				<!-- Unhandled parameter value -->
+				<do_else>
+					<debug_text text="'Unhandled Waypoint List menu choice... %1'.[event.param]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+				</do_else>
+				
+			</actions>
+		</cue>
+		
+		<!-- Ship select and configure menu screen handler cue -->
+		<cue name="SectionHandler_ShipMenu" instantiate="true" namespace="this">
+			<conditions>
+				<check_any>
+					<event_conversation_returned_to_section sectionprefix="gMT_ShipMenu_"/>
+					<event_conversation_next_section sectionprefix="gMT_ShipMenu_"/>
+				</check_any>
+				<check_value value="global.$XRCLS?"/>
+			</conditions>
+			<actions>
+				<!-- Set up some variables -->
+				<do_if value="event.param != 'gMT_ShipMenu_back' and event.param != 'gMT_ShipMenu_gothomebase' and event.param != 'gMT_ShipMenu_configreturn' and not @global.$bMapCall">
+					<debug_text text="'MTL Ship Menu: Param = %1 - Param2 = %2 Expand state = %3'.[event.param, event.param2, event.param2.{4}.{3}]"/>
+					<set_value name="global.$bMapCall" exact="false"/>
+					<set_value name="$iTopRow" exact="event.param2.{1}"/>
+					<set_value name="$iSelRow" exact="event.param2.{2}"/>
+					<set_value name="$lExpand" exact="event.param2.{4}.{3}"/>
+					<set_value name="$tAction" exact="event.param2.{4}.{4}"/>
+					<set_value name="$lTrader" exact="event.param2.{6}"/>
+					<set_value name="$oShip" exact="$lTrader.{1}"/>
+					<set_value name="$iShip" exact="$lTrader.{10}"/>
+				</do_if>
+				
+				<!-- Add a brand new, never used before ship -->
+				<do_if value="event.param == 'gMT_ShipMenu_addship' and not @global.$bMapCall">
+					<do_if value="$tAction == 'addship'">
+						<debug_text text="'MTL Ship Menu: Ship Data = %1'.[$lTrader]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+						<debug_text text="'The new ship selected was:  %1'.[$oShip.knownname]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+						<debug_text text="'Trader = %1'.[$lTrader]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+						<append_to_list name="global.$XRCLS.$lTradeShips" exact="$lTrader"/>
+						<!-- append_to_list name="global.$XRCLS.$lAdminLog" exact="[player.age,'New Trade Ship Added to fleet %1'.[$lTrader.{1}.knownname]]"/ -->
+						<signal_cue_instantly cue="WriteLog" param="[true, 'admin', [player.age,{150402, 500}.[$lTrader.{1}.knownname]], null, null]"/>
+					</do_if>
+					<!-- Sort the ship list out and re-call the ship select menu -->
+					<signal_cue_instantly cue="GetShipLists" param="[this]"/>
+					<!-- Open the select ship menu -->
+					<debug_text text="'Ship Menu: Expand state = %1'.[$lExpand]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_Select_Ship" param="[$iTopRow, $iSelRow, [], [$iTopRow, $iSelRow, $lExpand],  $aReturn.{1}, [], []]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<remove_value name="$aReturn"/>
+				</do_if>
+
+				<!-- Remove the selected ship if requested -->
+				<do_elseif value="event.param == 'gMT_ShipMenu_removeship' and not @global.$bMapCall">
+					<do_if value="$tAction == 'removeship'">
+						<set_value name="$oShipRemove" exact="global.$XRCLS.$lTradeShips.{$iShip}.{1}" comment="for debug text only"/>
+						<remove_value name="global.$XRCLS.$lTradeShips.{$iShip}"/>
+						<!-- append_to_list name="global.$XRCLS.$lAdminLog" exact="[player.age,'Removed ship from fleet %1'.[$lTrader.{1}.knownname]]"/ -->
+						<signal_cue_instantly cue="WriteLog" param="[true, 'admin', [player.age,{150402, 501}.[$lTrader.{1}.knownname]], null, null]"/>
+						<debug_text text="'Removed ship: %1 - Global Active: %2'.[$oShipRemove.knownname, global.$XRCLS.$lTradeShips]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					</do_if>
+					<!-- Sort the ship list out and re-call the ship select menu -->
+					<signal_cue_instantly cue="GetShipLists" param="[this]"/>
+					<!-- Open the select ship menu -->
+					<open_conversation_menu menu="gMT_Station_Logistics_Select_Ship" param="[$iTopRow, $iSelRow, [], [$iTopRow, $iSelRow, $lExpand], $aReturn.{1}, [], []]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<remove_value name="$aReturn"/>
+					<remove_value name="$oShipRemove"/>
+				</do_elseif>
+
+				<!-- Start a ship trading -->
+				<do_elseif value="event.param == 'gMT_ShipMenu_startship' and not @global.$bMapCall">
+					<do_if value="event.param2.{4}.{4} == 'startship'">
+						<debug_text text="'MTL Ship Menu: Started ship: %1  Ship Index = %2'.[$oShip.knownname, $iShip]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+						<set_value name="global.$XRCLS.$lTradeShips.{$iShip}.{8}" exact="1" comment="Now Trading"/>
+						<!-- append_to_list name="global.$XRCLS.$lTradeShips.{$iShip}.{7}" exact="[player.age,'Started Trading with ship %1'.[$oShip.knownname]]"/ -->
+						<signal_cue_instantly cue="WriteLog" param="[true, 'admin', [player.age,{150402, 502}.[$oShip.knownname]], null, null]"/>
+						<!-- Need to trigger our trader script here to start the ship doing something -->
+						<signal_cue_instantly cue="md.Manage_MT_Logistics.StartCLStrader" param="global.$XRCLS.$lTradeShips.{$iShip}"/>
+					</do_if>
+					<!-- Sort the ship list out and re-call the ship select menu -->
+					<signal_cue_instantly cue="GetShipLists" param="[this]"/>
+					<!-- Open the select ship menu -->
+					<open_conversation_menu menu="gMT_Station_Logistics_Select_Ship" param="[$iTopRow, $iSelRow, [], event.param2.{4}, $aReturn.{1}, event.param2.{6}]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<remove_value name="$aReturn"/>
+					<remove_value name="$oShipReadd"/>
+				</do_elseif>
+				
+				<!-- Stop a ship from trading -->
+				<do_elseif value="event.param == 'gMT_ShipMenu_stopship' and not @global.$bMapCall">
+					<do_if value="event.param2.{4}.{4} == 'stopship'">
+						<debug_text text="'MTL Ship Menu: Stopped ship: %1  Ship Index %2'.[$oShip.knownname, $iShip]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+						<set_value name="global.$XRCLS.$lTradeShips.{$iShip}.{8}" exact="0" comment="Now not Trading"/>
+						<!-- append_to_list name="global.$XRCLS.$lTradeShips.{$iShip}.{7}" exact="[player.age,'Stopped Trading with ship %1'.[global.$XRCLS.$lTradeShips.{$iShip}.{1}.knownname]]"/ -->
+						<signal_cue_instantly cue="WriteLog" param="[true, 'admin', [player.age,{150402, 503}.[global.$XRCLS.$lTradeShips.{$iShip}.{1}.knownname]], null, null]"/>
+						<!-- Stop any XRCLS scripts from running -->
+						<signal_cue_instantly cue="md.Manage_MT_Logistics.StopCLStrader" param="global.$XRCLS.$lTradeShips.{$iShip}"/>
+					</do_if>
+					<!-- Sort the ship list out and re-call the ship select menu -->
+					<signal_cue_instantly cue="GetShipLists" param="[this]"/>
+					<!-- Open the select ship menu -->
+					<open_conversation_menu menu="gMT_Station_Logistics_Select_Ship" param="[$iTopRow, $iSelRow, [], event.param2.{4}, $aReturn.{1}, event.param2.{6}]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<remove_value name="$aReturn"/>
+				</do_elseif>
+				
+				<!-- Configure the ship's waypoints (new screen) -->
+				<do_elseif value="event.param == 'gMT_ShipMenu_config' and not @global.$bMapCall">
+					<!-- Save our current return value -->
+					<set_value name="global.$lTempParam2" exact="event.param2"/>
+					<!-- Now get our ship details -->
+					<set_value name="$lTrader" exact="event.param2.{6}"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_ListWaypoints" param="[0, 0, [], [$iTopRow, $iSelRow, $lExpand, 'fromshipmenu'], [], $lTrader, []]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_elseif>
+				
+				<!-- Deal with return from config menu -->
+				<do_elseif value="event.param == 'gMT_ShipMenu_configreturn' and not @global.$bMapCall">
+					<!-- save our return parameters and restore old value -->
+					<debug_text text="'Config return EP2 = %1'.[event.param2]"  filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<set_value name="$lTrader" exact="event.param2.{6}"/>
+					<set_value name="$lRet" exact="global.$lTempParam2"/>
+					<remove_value name="global.$lTempParam2"/>
+					<set_value name="$iTopRow" exact="$lRet.{1}"/>
+					<set_value name="$iSelRow" exact="$lRet.{2}"/>
+					<set_value name="$lExpand" exact="$lRet.{4}.{3}"/>
+					<set_value name="$tAction" exact="event.param2.{4}.{4}"/>
+					<set_value name="$oShip" exact="$lTrader.{1}"/>
+					<set_value name="$iShipStatus" exact="$lTrader.{8}"/>
+					<set_value name="$iShip" exact="$lTrader.{10}"/>
+
+					<debug_text text="'Ltrader = %1  Action = %2  iShip = %3 Status %4 Debug lvl = %5 Tracking = %6'.[$lTrader, $tAction, $iShip, $iShipStatus, $lTrader.{13}, $lTrader.{14}]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+
+					<do_if value="$tAction == 'updateship'" comment="Only need to do stuff if our waypoint list changed">
+						<do_if value="$iShipStatus gt 0" comment="Our ship is actively trading/mining">
+							<do_if value="$lTrader.{4}.count lt 2" comment="Ship is active but has less than 2 waypoints so stop it">
+								<set_value name="$lTrader.{8}" exact="0" comment="Make ship Inactive"/>
+								<!-- append_to_list name="$lTrader.{7}" exact="[player.age,'Updated Waypoints for ship %1 - ship now has less than two waypoints so stopping'.[$lTrader.{1}.knownname]]"/ -->
+								<signal_cue_instantly cue="WriteLog" param="[true, 'admin', [player.age,{150402, 504}.[$lTrader.{1}.knownname]], null, null]"/>
+								<!-- Signal the ship to stop trading -->
+								<signal_cue_instantly cue="md.Manage_MT_Logistics.StopCLStrader" param="$lTrader"/>
+							</do_if>
+							<do_else comment="All ok so just update">
+								<!-- append_to_list name="$lTrader.{7}" exact="[player.age,'Updated Waypoints for ship %1'.[$lTrader.{1}.knownname]]"/ -->
+								<signal_cue_instantly cue="WriteLog" param="[true, 'admin', [player.age,{150402, 505}.[$lTrader.{1}.knownname]], null, null]"/>
+								<!-- Signal the ship to update its waypoints -->
+								<signal_cue_instantly cue="md.Manage_MT_Logistics.UpdateCLStrader" param="$lTrader"/>
+							</do_else>
+						</do_if>
+						<do_else comment="Ship is not actively trading">
+							<!-- append_to_list name="$lTrader.{7}" exact="[player.age,'Updated Waypoints for ship %1'.[$lTrader.{1}.knownname]]"/ -->
+							<signal_cue_instantly cue="WriteLog" param="[true, 'admin', [player.age,{150402, 505}.[$lTrader.{1}.knownname]], null, null]"/>
+						</do_else>
+					</do_if>
+					
+					<!-- Save trader in the global list -->
+					<set_value name="global.$XRCLS.$lTradeShips.{$iShip}" exact="$lTrader"/>
+					<!-- Sort the ship list out and re-call the ship select menu -->
+					<signal_cue_instantly cue="GetShipLists" param="[this]"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_Select_Ship" param="[$iTopRow, $iSelRow, [], [$iTopRow, $iSelRow, $lExpand], $aReturn.{1}, [], []]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<debug_text text="'Returned from waypoint list......'" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<remove_value name="$aReturn"/>
+					<remove_value name="$lRet"/>
+					<remove_value name="$lTrader"/>
+					<remove_value name="$tAction"/>
+					<remove_value name="$iShip"/>
+					<remove_value name="$oShip"/>
+				</do_elseif>
+
+				<!-- Get a player station from the map to use as homebase -->
+				<do_elseif value="event.param == 'gMT_ShipMenu_gethomebase' and not @global.$bMapCall">
+					<!-- Need to save stuff here? -->
+					<set_value name="global.$lTempParam2" exact="event.param2"/>
+					<set_value name="global.$bMapCall" exact="true"/>
+					<set_value name="$oShip" exact="event.param2.{6}.{1}"/>
+					<debug_text text="'MTL Map Call: event.param2 = %1  Passed expand state = %2'.[event.param2, event.param2.{4}.{3}]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<!-- open_conversation_menu menu="MapMenu" param="[0, 0, 'zone', player.primaryship.zone, null, null, 'selectplayerobject', ['gMT_ShipMenu_gothomebase', null, false, false, false, true]]"/ -->
+					<open_conversation_menu menu="MapMenu" param="[0, 0, 'zone', $oShip.zone, null, null, 'selectplayerobject', ['gMT_ShipMenu_gothomebase', event.object.ship, null, false, false, false, true, null, null, null, null, null, null, null, true]]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_elseif>
+				
+				<!-- Deal with the homebase selected -->
+				<do_elseif value="event.param == 'gMT_ShipMenu_gothomebase'">
+					<debug_text text="'IN MAP RETURN SECTION.......event.param2 = %1'.[event.param2]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<set_value name="$lRet" exact="global.$lTempParam2"/>
+					<set_value name="global.$bMapCall" exact="false"/>
+					<remove_value name="global.$lTempParam2"/>
+					<set_value name="$iTopRow" exact="$lRet.{1}"/>
+					<set_value name="$iSelRow" exact="$lRet.{2}"/>
+					<set_value name="$lExpand" exact="$lRet.{4}.{3}"/>
+					<set_value name="$tAction" exact="$lRet.{4}.{4}"/>
+					<set_value name="$lTrader" exact="$lRet.{6}"/>
+					<set_value name="$oShip" exact="$lTrader.{1}"/>
+					<set_value name="$iShip" exact="$lTrader.{10}"/>
+
+					<do_if value="event.param2.{4}.{4}?" comment="no homebase selected - Edit our homebase value back into our list">
+						<set_value name="$oHome" exact="$lTrader.{2}"/>
+					</do_if>
+					<do_else>
+						<set_value name="$oHome" exact="event.param2.{3}"/>						
+						<set_value name="global.$XRCLS.$lTradeShips.{$iShip}.{2}" exact="$oHome"/>
+						<!-- append_to_list name="global.$XRCLS.$lTradeShips.{$iShip}.{7}" exact="[player.age,'Added/Updated Homebase for ship %1 to %2'.[$lTrader.{1}.knownname, $oHome.knownname]]"/ -->
+						<signal_cue_instantly cue="WriteLog" param="[true, 'admin', [player.age,{150402, 506}.[$lTrader.{1}.knownname, $oHome.knownname]], null, null]"/>
+					</do_else>
+	
+					<!-- Sort the ship list out and re-call the ship select menu -->
+					<signal_cue_instantly cue="GetShipLists" param="[this]"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_Select_Ship" param="[$iTopRow, $iSelRow, [],  [$iTopRow, $iSelRow, $lExpand, $tAction], $aReturn.{1}, [], []]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<debug_text text="'Got a new homebase...... %1'.[@$oHome.name]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<remove_value name="$aReturn"/>
+					<remove_value name="$oHome"/>
+					<remove_value name="$lRet"/>
+					<remove_value name="$iTopRow"/>
+					<remove_value name="$iSelRow"/>
+					<remove_value name="$lExpand"/>
+					<remove_value name="$tAction"/>
+					<remove_value name="$lTrader"/>
+					<remove_value name="$oShip"/>
+					<remove_value name="$iShip"/>
+				</do_elseif>
+
+				<!-- Return to the admin menu -->
+				<do_elseif value="event.param == 'gMT_ShipMenu_back' and not @global.$bMapCall">
+					<debug_text text="'MT Ship Menu: Fired the gMT_ShipMenu_back section'" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<!-- Save ship menu expand states -->
+					<set_value name="global.$XRCLS.$lExpandStates.{1}" exact="event.param2.{4}"/>
+					<!-- Save row info -->
+					<open_conversation_menu menu="gMT_Station_Logistics_Admin" param="event.param2"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_elseif>
+
+				<!-- Deal with cancel from map screen -->
+				<do_elseif value="global.$bMapCall">
+					<debug_text text="'IN MAP CANCEL SECTION.......event.param2 = %1'.[event.param2]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<set_value name="$lRet" exact="global.$lTempParam2"/>
+					<set_value name="global.$bMapCall" exact="false"/>
+					<remove_value name="global.$lTempParam2"/>
+					<set_value name="$iTopRow" exact="$lRet.{1}"/>
+					<set_value name="$iSelRow" exact="$lRet.{2}"/>
+					<set_value name="$lExpand" exact="$lRet.{4}.{3}"/>
+					<set_value name="$tAction" exact="'mapcancel'"/>
+					<!-- Sort the ship list out and re-call the ship select menu -->
+					<signal_cue_instantly cue="GetShipLists" param="[this]"/>
+					<open_conversation_menu menu="gMT_Station_Logistics_Select_Ship" param="[$iTopRow, $iSelRow, [],  [$iTopRow, $iSelRow, $lExpand, $tAction], $aReturn.{1}, [], []]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<remove_value name="$aReturn"/>
+					<remove_value name="$lRet"/>
+					<remove_value name="$iTopRow"/>
+					<remove_value name="$iSelRow"/>
+					<remove_value name="$lExpand"/>
+					<remove_value name="$tAction"/>
+				</do_elseif>
+
+				<!-- Unhandled return action -->
+				<do_else>
+					<debug_text text="'ERROR: Unhandled Ships menu event: %1'.[event.param]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 1)"/>
+				</do_else>
+
+				<!-- Clean up some variables -->
+				<do_if value="event.param != 'gMT_ShipMenu_back' and event.param != 'gMT_ShipMenu_configreturn' and event.param != 'gMT_ShipMenu_gothomebase' ">
+					<remove_value name="$iTopRow"/>
+					<remove_value name="$iSelRow"/>
+					<remove_value name="$lExpand"/>
+					<remove_value name="$tAction"/>
+					<remove_value name="$lTrader"/>
+					<remove_value name="$oShip"/>
+					<remove_value name="$iShip"/>
+				</do_if>
+				
+			</actions>
+		</cue>
+		
+		<!-- Mod Configure menu handler cue -->
+		<cue name="SectionHandler_ConfigureMenu" instantiate="true" namespace="this">
+			<conditions>
+				<check_any>
+					<event_conversation_next_section sectionprefix="gMT_ConfigMenu_"/>
+					<event_conversation_returned_to_section sectionprefix="gMT_ConfigMenu_"/>
+				</check_any>
+				<check_value value="global.$XRCLS?" />
+			</conditions>
+			<actions>
+				<debug_text text="'MTL - Config Menu: param = %1 - param2 = %2'.[event.param, event.param2]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+				<!-- Uninstall was selected -->
+				<do_if value="event.param == 'gMT_ConfigMenu_uninstall'">
+					<debug_text text="'MTL - Config Menu: Uninstall selected....'" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<signal_cue_instantly cue="md.XRCLS.Uninstall" />
+				</do_if>
+
+				<!-- Reset all the XCRLS stuff to null-->
+				<do_elseif value="event.param == 'gMT_ConfigMenu_reset'">
+					<debug_text text="'Reseting all XRCLS lists to null, removing NPC data!!'" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<set_value name="global.$XRCLS.$lTradeShips" exact="[]"/>
+					<set_value name="global.$XRCLS.$lAdminLog" exact="[]"/>
+					<set_value name="global.$XRCLS.$lActiveTradeShips" exact="[]"/>
+					<set_value name="global.$XRCLS.$lInactiveTradeShips" exact="[]"/>
+					<do_all exact="global.$XRCLS.$lConfiguredNPCs.count" counter="$i">
+						<set_value name ="$eEntity" exact="global.$XRCLS.$lConfiguredNPCs.{$i}"/>
+						<remove_value name="$eEntity.$XRCLS"/>
+						<debug_text text="'Entity Removed %1'.[$eEntity.name]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					</do_all>
+					<set_value name="global.$XRCLS.$lConfiguredNPCs" exact="[]"/>
+					<set_value name="global.$XRCLS.$lExpandStates" exact="[[],[]]"/>
+					<set_value name="global.$XRCLS.$lExpandStates.{1}" exact ="[0, 0, [0, 0]]" operation="set"/>
+					<set_value name="global.$XRCLS.$lExpandStates.{2}" exact ="[0, 0, [0, 0, 0]]" operation="set"/>
+					<set_value name="global.$XRCLS.$lTraderLog" exact="[]"/>
+				</do_elseif>
+
+				<!-- Update the debug level -->
+				<do_elseif value="event.param == 'gMT_ConfigMenu_debug-error' or event.param == 'gMT_ConfigMenu_debug-info' or event.param == 'gMT_ConfigMenu_debug-detail' or event.param == 'gMT_ConfigMenu_debug-verbose'">
+					<debug_text text="'Changed debug level selected.... %1  %2'.[event.param,event.param2.{3}]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<set_value name="global.$XRCLS.$iDebugLevel" exact="event.param2.{3}" />
+					<signal_objects object="player.primaryship" param="'XRCLS_UpdateDebugLevel'"/>
+				</do_elseif>
+
+				<!-- unhandled config menu condition -->
+				<do_else>
+					<debug_text text="'ERROR: Unhandled Config menu event: %1'.[event.param]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 1)"/>
+				</do_else>
+
+				<!-- Open the admin main screen -->
+				<open_conversation_menu menu="gMT_Station_Logistics_Admin" param="event.param2"/>
+				<add_conversation_view view="closeupdetailmonitor"/>
+			</actions>
+		</cue>
+
+		<!-- Admin menu handler cue -->
+		<cue name="SectionHandler_AdminMenu" instantiate="true" namespace="this">
+			<conditions>
+				<check_any>
+					<event_conversation_next_section sectionprefix="gMT_Admin_"/>
+					<event_conversation_returned_to_section sectionprefix="gMT_Admin_"/>
+				</check_any>
+				<check_value value="global.$XRCLS?" />
+			</conditions>
+			<actions>
+				<debug_text text="'MTL - Admin Menu: param = %1 - param2 = %2'.[event.param, event.param2]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+				<!-- Add, edit or remove ships -->
+				<do_if value="event.param == 'gMT_Admin_Ship_menu'">
+					<!-- Go through our list and update all the crew scores -->
+					<signal_cue_instantly cue="UpdateCrewScores"/>
+					<!-- Call cue to sanitise ship lists -->
+					<signal_cue_instantly cue="GetShipLists" param="[this]"/>
+					<debug_text text="'Got values back %1'.[$aReturn.{1}]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<!-- Open the select ship menu -->
+					<open_conversation_menu menu="gMT_Station_Logistics_Select_Ship" 
+											param="[global.$XRCLS.$lExpandStates.{1}.{1}, 
+											global.$XRCLS.$lExpandStates.{1}.{2}, [], global.$XRCLS.$lExpandStates.{1}, $aReturn.{1}, [], []  ]"/>
+					<add_conversation_view view="closeupdetailmonitor"/> 
+					<remove_value name="$aReturn"/>
+					<remove_value name="$iTopRow"/>
+					<remove_value name="$iSelRow"/>
+				</do_if>
+				
+				<!-- Open the reports menu screen -->
+				<do_elseif value="event.param == 'gMT_Admin_Report_menu'">
+					<!-- Call cue to sanitise ship lists -->
+					<signal_cue_instantly cue="GetShipLists" param="[this]"/>
+					<debug_text text="'Got values back %1'.[$aReturn.{1}]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<debug_text text="'MTL - Admin Menu: XRCLS Crew: %1'.[global.$XRCLS.$lConfiguredNPCs]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<!-- open_conversation_menu menu="gMT_Station_Logistics_Configure" param="event.param2"/ -->
+					<open_conversation_menu menu="gMT_Station_Logistics_Reports" param="[0, 0, [], global.$XRCLS.$lExpandStates.{2}, $aReturn.{1}, 
+																										global.$XRCLS.$lConfiguredNPCs, []]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<remove_value name="$aReturn"/>
+				</do_elseif>
+
+				<!-- Configure the mod -->
+				<do_elseif value="event.param == 'gMT_Admin_Config_menu'">
+					<!-- debug_text text="'Global debug level set to %1'.[global.$XRCLS.$iDebugLevel]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/ -->
+					<open_conversation_menu menu="gMT_Station_Logistics_Configure" param="[ 0, 0, [], [event.param2.{1}, event.param2.{2}, global.$XRCLS.$iDebugLevel] ]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_elseif>
+
+				<!-- Handle return from config menu -->
+				<do_elseif value="event.param == 'gMT_Admin_Config_return'">
+					<open_conversation_menu menu="gMT_Station_Logistics_Admin" param="event.param2"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_elseif>
+				
+				<!-- Close the window -->
+				<do_elseif value="event.param == 'gMT_Admin_close'">
+					<add_conversation_view/>
+				</do_elseif>
+				
+				<!-- Unhandled menu event -->
+				<do_else>
+					<debug_text text="'ERROR: Unhandled Admin Menu Choice %1'.[event.param]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 1)"/>
+				</do_else>
+			</actions>
+		</cue>
+
+		<!-- Main menu handler cue -->
+		<cue name="MenuHandler_MT_Logistics" instantiate="true" namespace="this">
+			<conditions>
+				<check_any>
+					<event_conversation_next_section sectionprefix="gMT_Logistics" />
+					<event_conversation_returned_to_section sectionprefix="gMT_Logistics" />
+				</check_any>
+				<check_value value="global.$XRCLS?" />
+			</conditions>
+			<actions>
+				<debug_text text="'MTL - Sidebar Menu: param = %1 - param2 = %2'.[event.param, event.param2]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+				<open_conversation_menu menu="gMT_Station_Logistics_Admin" param="event.param2"/>
+				<add_conversation_view view="closeupdetailmonitor"/>
+				<!-- debug_text text="'Main Menu cue is finished'"/ -->
+			</actions>
+		</cue>
+
+		<!-- Map Handler cue -->
+		<cue name="MapHandler_MT" instantiate="true" namespace="this">
+			<conditions>
+				<check_any>
+					<event_conversation_next_section sectionprefix="gMT_Map_"/>
+					<event_conversation_returned_to_section sectionprefix="gMT_Map_"/>
+				</check_any>
+				<check_value value="global.$XRCLS?"/>
+			</conditions>
+			<actions>
+				<do_if value="event.param == 'gMT_Map_GetStation'">
+					<!-- Save our parameters temporarily for return -->
+					<set_value name="global.$XRCLS.$mapparam" exact="event.param2"/>
+					<set_value name="$oHomebase" exact="event.param2.{6}.{2}"/>
+					<!-- Open the map menu with correct selection options -->
+					<do_if value="event.param2.{8} == 'npc'">
+						<!-- open_conversation_menu menu="MapMenu" param="[0, 0, 'zone', player.primaryship.zone, null, null, 'selectobject', ['gMT_Map_StationSelected', null, false, true]]"/ -->
+						<open_conversation_menu menu="MapMenu" param="[0, 0, 'zone', $oHomebase.zone, null, null, 'selectobject', ['gMT_Map_StationSelected', null, false, true]]"/>
+					</do_if>
+					<do_elseif value="event.param2.{8} == 'player'">
+						<!-- open_conversation_menu menu="MapMenu" param="[0, 0, 'zone', player.primaryship.zone, null, null, 'selectplayerobject', ['gMT_Map_StationSelected', null, false, false, false, true]]"/ -->
+						<open_conversation_menu menu="MapMenu" param="[0, 0, 'zone', $oHomebase.zone, null, null, 'selectplayerobject', ['gMT_Map_StationSelected', event.object.ship, null, false, false, false, true, null, null, null, null, null, null, null, true]]"/>
+					</do_elseif>
+					<add_conversation_view view="closeupdetailmonitor"/>
+				</do_if>
+				
+				<do_elseif value="event.param == 'gMT_Map_StationSelected'">
+					<!-- Restore our previously saved parameter info -->
+						<debug_text text="'event.param2 = %1'.[event.param2]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+						<set_value name="$lTrader" exact="global.$XRCLS.$mapparam.{6}"/>
+						<set_value name="$tAction" exact="global.$XRCLS.$mapparam.{4}.{4}"/>
+						<set_value name="$lWaypoint" exact="global.$XRCLS.$mapparam.{7}"/>
+						<set_value name="$oOldStation" exact="global.$XRCLS.$mapparam.{7}.{3}"/>
+						<remove_value name="global.$XRCLS.$mapparam"/>
+						<debug_text text="'Old station = %1'.[$oOldStation]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+
+						<do_if value="@event.param2.{4}.{4} == 'addwaypoint'">
+							<set_value name="$oSelectedStation" exact="$oOldStation"/>
+						</do_if>
+						<do_else>
+							<set_value name="$oSelectedStation" exact="event.param2.{3}"/>
+						</do_else>
+					
+						<debug_text text="'Station selected value on map return = %1'.[$oSelectedStation]"/>
+						<!-- Get ware list for station -->
+						<set_value name="$lWareList" exact="[$oSelectedStation.resources.list, $oSelectedStation.products.list, $oSelectedStation.tradewares.list]"/>
+						<debug_text text="'MT CLS - Selected Station: %1  Ware List = %2'.[$oSelectedStation.name, $lWareList]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 1)"/>
+						<!-- Go back to our waypoint editor map with the station info -->
+						<open_conversation_menu menu="gMT_Station_Logistics_EditWaypoint" param="[0, 0, [], [0,0,[0,0],$tAction], [], $lTrader, $lWaypoint, $lWareList, $oSelectedStation]"/>
+						<add_conversation_view view="closeupdetailmonitor"/>
+						<debug_text text="'MT CLS - Selected Station: %1'.[$oSelectedStation.name]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 1)"/>
+						<!-- Cleanup -->
+						<remove_value name="$lTrader"/>
+						<remove_value name="$tAction"/>
+						<remove_value name="$lWaypoint"/>
+						<remove_value name="$oSelectedStation"/>
+						<remove_value name="$oOldStation"/>
+				</do_elseif>
+
+				<do_elseif value="event.param == 'gMT_Map_HomebaseSelected'">
+					<debug_text text="'event.param2 = %1'.[event.param2]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<set_value name="$tAction" exact="event.param2.{4}.{4}"/>
+					<set_value name="$lTrader" exact="event.param2.{6}"/>
+					<set_value name="$lWaypoint" exact="event.param2.{7}"/>
+					<set_value name="$oHomebase" exact="$lTrader.{2}"/>
+					<debug_text text="'Station selected value on map return = %1'.[$oHomebase]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+					<set_value name="$lWaypoint.{3}" exact="$oHomebase"/>
+					<!-- Get ware list for station -->
+					<set_value name="$lWareList" exact="[$oHomebase.resources.list, $oHomebase.products.list, $oHomebase.tradewares.list]"/>
+					<debug_text text="'MT CLS - Selected Station: %1  Ware List = %2'.[$oHomebase.knownname, $lWareList]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 1)"/>
+					<!-- Go back to our waypoint editor with the station info -->
+					<open_conversation_menu menu="gMT_Station_Logistics_EditWaypoint" param="[0, 0, [], event.param2.{4}, [], $lTrader, $lWaypoint, $lWareList]"/>
+					<add_conversation_view view="closeupdetailmonitor"/>
+					<debug_text text="'MT CLS - Selected Station: %1'.[$oHomebase.knownname]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 1)"/>
+					<!-- Cleanup -->
+					<remove_value name="$lTrader"/>
+					<remove_value name="$tAction"/>
+					<remove_value name="$lWaypoint"/>
+					<remove_value name="$oHomebase"/>
+				</do_elseif>
+				
+				<!-- Unhandled map value -->
+				<do_else>
+					<debug_text text="'ERROR: Unhandled Map menu event:  ' + event.param" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 1)"/>
+				</do_else>
+			</actions>
+		</cue>
+
+		<!-- Cue to re-calculate all the crew scores -->
+		<cue name="UpdateCrewScores" instantiate="true" namespace="this">
+			<conditions>
+				<event_cue_signalled/>
+			</conditions>
+			<actions>
+				<set_value name="$lTraders" exact="global.$XRCLS.$lTradeShips"/>				<!-- Get all the traders into a local list -->
+				<do_all exact="$lTraders.count" counter="$i">
+					<set_value name="$oShip" exact="$lTraders.{$i}.{1}"/>
+					<set_value name="$iCrewSkill" exact="@$oShip.pilot.combinedskill + @$oShip.defencenpc.combinedskill + @$oShip.engineer.combinedskill"/>
+					<set_value name="$iCrewLevel" exact="1"/>
+					<do_if value="$iCrewSkill" min="200" max="249">
+						<set_value name="$iCrewLevel" exact="2"/>
+					</do_if>
+					<do_if value="$iCrewSkill ge 250">
+						<set_value name="$iCrewLevel" exact="3"/>
+					</do_if>
+					<set_value name="$lTraders.{$i}.{5}" exact="$iCrewLevel"/>
+					<set_value name="$lTraders.{$i}.{6}" exact="$iCrewSkill"/>
+				</do_all>
+				<set_value name="global.$XRCLS.$lTradeShips" exact="$lTraders"/>
+				<remove_value name="$iCrewSkill"/>
+				<remove_value name="$iCrewLevel"/>
+				<remove_value name="$lTraders"/>
+				<remove_value name="$oShip"/>
+			</actions>
+		</cue>
+		
+		<!-- Synchronise list of ships -->
+		<cue name="GetShipLists" instantiate="true" namespace="this">
+			<conditions>
+				<event_cue_signalled/>
+			</conditions>
+			<actions>
+				<set_value name="$oCue" exact="event.param.{1}"/>
+				<set_value name="$lTradeShips" exact="global.$XRCLS.$lTradeShips"/>							<!-- Get all the traders into a local list -->
+				<set_value name="$lNewList" exact="[]"/>
+				<!-- Set the index for the ship component -->
+				<do_all exact="$lTradeShips.count" counter="$iTraderIndex">								<!-- now get a list of ships to pass into the menu -->
+					<set_value name="$lTrader" exact="$lTradeShips.{$iTraderIndex}"/>
+					<set_value name="$oShip" exact="$lTrader.{1}"/>
+					<do_if value="@$oShip.exists and @$oShip.isoperational">
+						<set_value name="$iCrewSkill" exact="@$oShip.pilot.combinedskill + @$oShip.defencenpc.combinedskill + @$oShip.engineer.combinedskill"/>
+						<set_value name="$iCrewLevel" exact="1"/>
+						<do_if value="$iCrewSkill" min="200" max="249">
+							<set_value name="$iCrewLevel" exact="2"/>
+						</do_if>
+						<do_if value="$iCrewSkill ge 250">
+							<set_value name="$iCrewLevel" exact="3"/>
+						</do_if>
+						<set_value name="$lTrader.{5}" exact="$iCrewLevel"/>
+						<set_value name="$lTrader.{6}" exact="$iCrewSkill"/>
+						<set_value name="$lTrader.{10}" exact="$iTraderIndex"/>
+						<set_value name="$lTrader.{11}" exact="$lTrader.{4}.count" comment="Number of waypoints"/>
+						<append_to_list name ="$lNewList" exact="$lTrader"/>
+					</do_if>
+				</do_all>
+				
+				<!-- Update the saved list -->
+				<set_value name="global.$XRCLS.$lTradeShips" exact="$lNewList"/>
+				<debug_text text="'Global Ship List: %1'.[global.$XRCLS.$lTradeShips ]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)" />
+				
+				<set_value name="$oCue.$aReturn" exact="[$lNewList]"/>
+				<!-- clean up -->
+				<remove_value name="$lTradeShips"/>
+				<remove_value name="$lTrader"/>
+				<remove_value name="$lNewList"/>
+				<remove_value name="$iTraderIndex"/>
+				<remove_value name="$oShip"/>
+				<remove_value name="$iCrewSkill"/>
+				<remove_value name="$iCrewLevel"/>
+			</actions>
+		</cue>
+
+		<!-- Debug - Write log contents and show in debug log if requested -->
+		<!-- Param.{1} - true if write to debug log Param.{2} - log to write  Param.{3} - log entry Param.{4} - ship index if ship log  Param.{5} - ship object if ship log -->
+		<cue name="WriteLog" instantiate="true" namespace ="this">
+			<conditions>
+				<event_cue_signalled/>
+			</conditions>
+			<actions>
+				<set_value name="$bWriteToDebug" exact="event.param.{1}"/>
+				<set_value name="$sLog" exact="event.param.{2}"/>
+				<set_value name="$lEntry" exact="event.param.{3}"/>
+				<set_value name="$iShip" exact="event.param.{4}"/>
+				<set_value name="$oShip" exact="event.param.{5}"/>
+								
+				<!-- Update the admin log -->
+				<do_if  value="$sLog == 'admin'" comment="Write to Admin log">
+					<set_value name="global.$XRCLS.$lAdminLog.{1}" exact="$lEntry" operation="insert"/>
+					<do_if value="$bWriteToDebug">
+						<do_all exact="global.$XRCLS.$lAdminLog.count" counter="$i">
+							<debug_text text="'++++ MT LOGISTICS ADMIN LOG +++++ %1'.[global.$XRCLS.$lAdminLog.{$i}]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+						</do_all>
+					</do_if>
+				</do_if>
+				<!-- Update the ship log-->
+				<do_elseif value="$sLog == 'ship'" comment="Write to ship log">
+					<set_value name="global.$XRCLS.$lTradeShips.{$iShip}.{7}.{1}" exact="$lEntry" operation="insert"/>
+					<do_if value="$bWriteToDebug">
+						<do_all exact="global.$XRCLS.$lTradeShips.{$iShip}.{7}.count" counter="$i">
+							<debug_text text="'++++ MT LOGISTICS SHIP LOG +++++ %1 Data %2'.[$oShip.knownname, global.$XRCLS.$lTradeShips.{$iShip}.{7}.{$i}]"  filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+						</do_all>
+					</do_if>
+				</do_elseif>
+				<do_else comment="Unhandled params">
+				</do_else>
+
+				<remove_value name="$bWriteToDebug"/>
+				<remove_value name="$sLog"/>
+				<remove_value name="$lEntry"/>
+				<remove_value name="$iShip"/>
+				<remove_value name="$oShip"/>
+					
+			</actions>
+		</cue>
+	
+	</cues>
+</mdscript>

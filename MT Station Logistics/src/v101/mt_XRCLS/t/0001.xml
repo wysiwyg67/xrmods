@@ -1,0 +1,286 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+	Base (English) text file for MT Station Logistics mod.
+	
+	Author: wysiwyg
+  
+	Last Change:
+	Version: V0.0.1
+	Date: 06th December 2014
+  
+	X Rebirth version: 3.00+
+-->
+<language>
+	<page id="150402" title="MT_Station_Logistics" descr="Texts for MT Station Logistics mod." voice="no">
+		<!-- Sidebar Menu 1-20 -->
+		<t id="1">MT Station Logistics</t>
+		<t id="2">Set-up and manage Station Logistics Traders</t>
+
+		<!-- DetailMonitor Admin menu 21-25 -->
+		<t id="21">MT Station Logistics - Administration</t>
+		<t id="22">Select an option from the list below and click select</t>
+		<!-- DetailMonitor Admin Menu - Buttons -->
+		<!-- Select {1001,3102} - vanilla -->
+		<!-- Back {1001,2669} - vanilla -->
+		<!-- DetailMonitor Admin menu - Options 26-40 -->
+		<t id="26">Administer Trade Ships</t>
+		<t id="27">Reports</t>
+		<t id="28">Configure</t>
+		<t id="29">Unassigned Crew Members</t>
+		<t id="30">CLS crew currently serving on non-cls vessel</t>
+		
+		<!-- DetailMonitor Reports Menu 41-80 -->
+		<t id="41">MT Station Logistics - Reports Menu</t>
+		<t id="42">Get data about ships and crew</t>
+		<t id="44">No Rank</t>
+		<t id="45">Train</t>
+		<t id="46">Report</t>
+		<t id="47">Crew member has a service record - eXPerience Points available to spend</t>
+		<t id="48">Crew member does not have a service record</t>
+		<!-- Captain's Ranks -->
+		<t id="49"></t>
+		<t id="50">Captain</t>
+		<t id="51">Major</t>
+		<t id="52">Lieutenant Colonel</t>
+		<t id="53">Colonel</t>
+		<t id="54">Commander</t>
+		<t id="55">Rear Admiral</t>
+		<t id="56">Admiral</t>
+		<t id="57"></t>
+		<t id="58"></t>
+		<t id="59"></t>
+		<!-- Defence Officer Ranks -->
+		<t id="60">Private</t>
+		<t id="61">Private 1st Class</t>
+		<t id="62">Corporal</t>
+		<t id="63">Crew Sergeant</t>
+		<t id="64">Sergeant 1st Class</t>
+		<t id="65">Gunnery Sergeant</t>
+		<t id="66">Sergeant Major</t>
+		<t id="67"></t>
+		<t id="68"></t>
+		<t id="69"></t>
+		<!-- Engineer Ranks -->
+		<t id="70">Crewman Apprentice</t>
+		<t id="71">Crewman</t>
+		<t id="72">Specialist</t>
+		<t id="73">Petty Officer 2nd Class</t>
+		<t id="74">Petty Officer 1st Class</t>
+		<t id="75">Chief Petty Officer</t>
+		<t id="76">Master Chief Petty Officer</t>
+		<t id="77"></t>
+		<t id="78"></t>
+		<t id="79"></t>
+		<t id="80"></t>
+
+		<!-- DetailMonitor Configuration Menu 81-100 -->
+		<t id="81">MT Station Logistics - Configuration</t>
+		<t id="82">Select an option below</t>
+		<t id="83">Set debug level 1 - Error</t>
+		<t id="84">Set debug level 2 - Information</t>
+		<t id="85">Set debug level 3 - Detailed</t>
+		<t id="86">Set debug level 4 - Verbose</t>
+		<t id="87">Uninstall MT Station Logistics</t>
+		<t id="88">Reset all XRCLS data</t>
+
+		<!-- DetailMonitor Ship Menu 101-160 -->
+		<t id="101">Administer Station Logistics Ships</t>
+		<t id="102">Configured Logistics Ships</t>
+		<t id="103">Homebase</t>
+		<t id="104">Score</t>
+		<t id="105">Active</t>
+		<t id="106">#WP</t>
+		<t id="107">Un-configured ships available</t>
+		<t id="108">Remove</t>
+		<t id="109">Stop</t>
+		<t id="110">Configure</t>
+		<t id="111">Active?</t>
+		<t id="112">None</t>
+		<t id="113">Mining</t>
+		
+		<!-- DetailMonitor Waypoint list menu 161-220 -->
+		<t id="161">Waypoint Management</t>
+		<t id="162">None Selected</t>
+		<t id="163">WP Type</t>
+		<t id="164">Min</t>
+		<!-- Max = vanilla {1001,19} -->
+		<!-- Ware = vanilla {1001,45} -->
+		<!-- Range = vanilla {1001,1302} -->
+		<t id="165">Active?</t>
+		<t id="166">No Station Selected</t>
+		<t id="167">No Action</t>
+		<t id="168">Load</t>
+		<t id="169">Unload</t>
+		<t id="170">Fly to</t>
+		<!-- Buy = vanilla {1001,2916} -->
+		<!-- Sell = vanilla {1001,2917} -->
+		<!-- Refuel = vanilla {1002,2027} -->
+		<t id="171">Locked</t>
+		<t id="172">Add New Waypoint</t>
+		<t id="173">Selected Ship</t>
+		<t id="174">Homebase Station</t>
+
+
+		<!-- DetailMonitor Waypoint Edit Menu 221-300 -->
+		<t id="221">Edit Waypoint</t>
+		<t id="222">Add Waypoint</t>
+		<t id="223">!!OBJECT SELECTED MUST BE A STATION!!</t>
+		<t id="224">!!STATION MUST HAVE A TRADE AGENT ONBOARD!!</t>
+		<t id="225">!!STATION SELECTED IS HOSTILE - PLEASE CHOOSE ANOTHER!!</t>
+		<t id="226">!!STATION SELECTED IS OUT OF RANGE FOR THE CURRENT CREW!!</t>
+		<t id="227">!!! WARNING!  THE STATION SELECTED DOES NOT DEAL IN ANY WARES THAT THE SHIP CAN CARRY !!!</t>
+		<t id="228">Description</t>
+		<t id="229">Action</t>
+		<!-- Station - vanilla {1001,3} -->
+		<t id="230">Home</t>
+		<t id="231">NPC</t>
+		<t id="232">Waypoint Type</t>
+		<t id="233">Ware Type</t>
+		<t id="234">If fuel left less than</t>
+		<t id="235">Minimum Amount</t>
+		<t id="236">Cargo Space</t>
+		<t id="237">Maximum Amount</t>
+		<t id="238">Maximum buy Price</t>
+		<t id="239">Minimum sell Price</t>
+		<t id="240">Avg</t>
+		<t id="241">Is Waypoint Active?</t>
+		<!-- Yes - Vanilla {1001,2617} -->
+		<!-- No - Vanilla {1001,2618} -->
+		<t id="242">Change</t>
+		<t id="243">Waypoint Range</t>
+		<t id="244">Save</t>
+		<t id="245">Move Up</t>
+		<t id="246">Move Down</t>
+		<t id="247">Cut</t>
+		<t id="248">Paste</t>
+		<t id="249">Paste Buffer</t>
+		<t id="250">Paste Buffer empty</t>
+		<t id="251">Waypoint Station</t>
+		
+		<!-- Crew log/training screen 301-400 -->
+		<t id="301">MT Station Logistics - Crew Details</t>
+		<t id="302">Train your crew member</t>
+		<t id="303">Flying Time</t>
+		<t id="304">Salary Earned</t>
+		<t id="305">Experience points left to spend</t>
+		<t id="306"></t>
+		<t id="307"></t>
+		<t id="308"></t>
+		<t id="309"></t>
+
+		<!-- Ship Log screen 401-500 -->
+		<t id="401">MT Station Logistics - Ship Log</t>
+		<t id="402">Get data from your Logistics Trader ships</t>
+		<t id="403">Total Time</t>
+		<t id="404">Turnover</t>
+		<t id="405">Volume Traded</t>
+		<t id="406">% Time Active</t>
+		<t id="407">Track</t>
+		<t id="408">(DBG) Verbose</t>
+		<t id="409">Admin Log</t>
+		<t id="410">Activity Log</t>
+		<t id="411">Debug Level for this ship</t>
+		<t id="412">No Log Entries to show</t>
+		<t id="413">Tracking Log</t>
+		<t id="414"></t>
+		<t id="415"></t>
+		<t id="416"></t>
+		<t id="417"></t>
+		<t id="418"></t>
+		<t id="419"></t>
+
+		<t id="420">Error - report to author</t>
+		<t id="421">Skipping waypoint due to waypoint set to inactive</t>
+		<t id="422">Skipping waypoint due to wages not being paid!!</t>
+		<t id="423">Wages paid - resuming duties</t>
+		<t id="424">Skipping waypoint due to waypoint being out of range for the current crew</t>
+		<t id="425">Skipping waypoint due to destination being hostile</t>
+		<t id="426">Waypoint is fly to. Already close enough so not moving</t>
+		<t id="427">Successfully flew to destination</t>
+		<t id="428">Null sweep: already safely at home so not moving</t>
+		<t id="429">Null sweep: flew home to safety</t>
+		<t id="430">Skipping due to not enough cash to pay for wares</t>
+		<t id="431">Skipping due to not enough wares for purchase at destination</t>
+		<t id="432">Skipping because the wares are too expensive at the destination</t>
+		<t id="433">Skipping due to no wares for sale at the destination</t>
+		<t id="434">Skipping because the amount is too low to be worth the trip</t>
+		<t id="435">Skipping because we already have enough of that ware on board</t>
+		<t id="436">Skipping because we don't have enough room in the hold</t>
+		<t id="437">Skipping because the destination does not want enough wares</t>
+		<t id="438">Skipping because the destination won't pay enough for the wares</t>
+		<t id="439">Skipping due to no buy offers at the destination</t>
+		<t id="440">Skipping because we don't have enough wares on board to meet the sale</t>
+		<t id="441">Skipping due to not being able to reserve enough wares</t>
+		<t id="442">Skipping as it seems that the target has been destroyed or is not functional</t>
+		<t id="443">Aborted because we couldn't park at the destination</t>
+		<t id="444">Something went wrong during the trade - Egosoft - I'm looking at you!!!</t>
+		<t id="445">Flying back to homebase</t>
+		<t id="446"></t>
+		<t id="447"></t>
+		<t id="448"></t>
+		<t id="449"></t>
+		<t id="450"></t>
+
+		<t id="451">Ship ceased trading - stopped by player</t>
+		<t id="452">The ship has been destroyed</t>
+
+		<!-- Admin log screen -->
+		<t id="460">MT Station Logistics - Admin Log</t>
+		<t id="461">See all actions on logistics ships</t>
+		<t id="462">No Admin Log messages</t>
+		<t id="463">Message</t>
+		<t id="464"></t>
+		<t id="465"></t>
+		<t id="466"></t>
+		<t id="467"></t>
+		<t id="468"></t>
+		<t id="469"></t>
+		<t id="470"></t>
+
+		<!-- Admin log screen 500-530 -->
+		<t id="500">New Trade Ship Added to fleet %1</t>
+		<t id="501">Removed ship from fleet %1</t>
+		<t id="502">Started Trading with ship %1</t>
+		<t id="503">Stopped Trading with ship %1</t>
+		<t id="504">Updated Waypoints for ship %1 - ship now has less than two waypoints so stopping</t>
+		<t id="505">Updated Waypoints for ship %1</t>
+		<t id="506">Updated Homebase for ship %1 to %2</t>
+		<t id="507"></t>
+		<t id="508"></t>
+		<t id="509"></t>
+		<t id="510"></t>
+
+
+
+		<t id="10000">Administration</t>
+		<t id="10001">Administer logistics traders</t>
+		<t id="10005">Reports</t>
+		<t id="10006">Get progress reports from stations and traders</t>
+		<t id="10008">Configure MT Station Logistics</t>
+		<t id="10009"></t>
+		<t id="10010"></t>
+		<t id="10011"></t>
+			  
+		<t id="10023">Edit Trader</t>
+		<t id="10026">Select a station that the trader will work for</t>
+		<t id="10035">Configure MT Station Logistics</t>
+		<t id="10036">Edit selected waypoint</t>
+
+		<!-- 9000 - 9999: Administration -->
+		<t id="9000">Uninstall</t>
+		<t id="9001">Debug Level</t>
+		<t id="9002">Error</t>
+		<t id="9003">Information</t>
+		<t id="9004">Detailed</t>
+		<t id="9005">Verbose</t>
+		  
+		<t id="9992">\nAdditional information is available in your logbook.</t>
+		<t id="9993">Active %1 version: V%2</t>
+		<t id="9994">Running %1 initialization cue at debug level %2...</t>
+		<t id="9995">Successfully un-installed %1 V%2.\nPlease save your game, close X-Rebirth, delete the %1 folder from your extensions folder and un-subscribe from the mod in the workshop, then load and save your game.%3</t>
+		<t id="9996">Warning!\nYou are downgrading your %1 version: V%2 -> V%3</t>
+		<t id="9997">Installing %1 V%2...%3</t>
+		<t id="9998">Detected %1 update: V%2 -> V%3%4\nPlease save your game and load it again.</t>
+		<t id="9999">Updated %1 configuration found....Update successful!</t>
+    </page>
+</language>
