@@ -1,0 +1,10 @@
+-- XRCLS - MT Station Logistics - detailed changelog
+
+v1.08
+2015-02-04	Changed how updates are handled in the mt_station_logistics_main.xml  MD scriptfile - now looks at the currently installed version as opposed to newly installed
+2015-02-04	Added some code to sanity check the ship's index value in mt_logistics.trade.ship.xml AI script file
+2015-02-04	Some minor menu tweeks to improve selected row behaviour in ship select screen
+2015-02-04	Fixed ware price display when adding or editing a waypoint
+
+
+

@@ -1,0 +1,165 @@
+-- Notes for development of XRCLS Mod
+Last update: 2015-01-13
+== UPDATE CHECLIST ==
+1. Change version number in md.mt_logistics.main.xml
+2. Ensure debugging is off
+3. Change version in content.xml
+4. Update forum text
+5. Build new version
+6. publish 
+
+=== RELEASE PREP ===
+0.9 DONE - Check Uninstall script and enable
+1. DONE - Configure and test build batch files
+2. DONE - Compile and test lua>xpl files>cat/dat
+3. Ego forum text
+4. DONE - Steam workshop text
+5. TODO: - User manual - get screenshots during testing
+6. DONE - Check aicompat stuff
+7. DONE - Publish
+
+== CURRENT DO LIST ==
+29. DONE - lockout all waypoints if captain removed or just stop ship?
+28. Run extended tests
+27. Check install/uninstall/save/load
+26. NEXT UPDATE - Load and save waypoint lists
+25. DONE - Admin log display
+24. DONE - Fix commission calc - needs testing
+23. DONE - Add in check for destroyed in all AI scripts - message to log
+22. NO - NEW FEATURE OR SEPARATE STATION LOG MOD - Logs - catch summary as entries are deleted?
+21. DONE -tick Coloured text entries for waypoint state on list screen 
+20. DONE - --ticked -- Put red flashing warnings back on WP edit screen
+19. DONE - Handled by null Sweep indicator - Check for consecutive failures of trades so that ship can undock if no trades done
+18. DONE - Ship wait time is debug level dependant
+17. DONE - Make ship debug level = 4 so it will turn on even if global level is set to 0
+16. DONE - Put proper delays back in ship.trader ai script - maybe switchable based on debug level
+15. DONE - Readtext entries for logging screens
+14. DONE -tick debug switches in lua code for debug levels, game reset, and test buttons - make global var in LibMT to switch - test
+13. CF
+12. DONE - fix bug to prevent overloading due to starting cargo in hold
+11. DONE - Sort out XP scaling by 100 ??
+10. CF
+9. CF
+8. DONE - Limits on trade log sizes - may still need on ship trade log - time based?
+7. CF
+6. CF
+5. CF
+4. CF
+3. DONE - Tracking display - add in ship location to header block
+2. DONE - Switch on/off individual debugging for ship
+1. DONE - Finish displaying trade ship log
+
+== General TODO ==
+1. DONE - ReadText codes - check for code decisions based on RT values and change
+2. DONE - Tidy code and consolidate data structures
+3. DONE - Improve section handling and return etc
+4. CARRIED FORWARD General checks for save load uninstall etc etc 
+5. NO - SHIPS CARRY THEIR OWN LOG - Need to add list index to global save list ($XRCLS) so that individual AI scripts can write to log 
+	NO - i) Global list for log - each ship has an index variable corresponding to position in log list
+	NO - ii) log list just has ship and a list of trades
+	NO - iii) Should cope with ships that are destroyed - keep the list entry even when no longer available - player can delete, trades copied to another
+	      list if ship log is cleared
+	NO - iv) find a way of consolidating these lists and keeping the trader lists short
+
+== CREW SKILLS ==
+a) 	DONE - filter un-configured ships for inappropriate/missing crew, drones, etc - UI SCREEN
+b) 	DONE - Check for crew on-board all ships - derive a "range" setting based on crew skill - UI SCREEN and AI/MD SCRIPTS <-- prevents cheating
+	DONE	i) Need to add a range value to each WP - determined when WP created - WP Edit screen needs to update when homebase changed
+	DONE	ii) Need to check station selected is in or out of range - WP Edit screen
+	DONE	iii) Add in checks for waypoint number limit based on crew skill
+c) DONE - Crew paid salary based on active flying time and avg? value of goods delivered - AI Script - salary and XP linked
+d) DONE - Crew gain experience based on amount delivered and flying time i.e. time executing waypoints - AI SCRIPT - captain skill overrides Eng and DO - E and DO skill boost captain XP??
+	DONE - i) Level 1 - Apprentice crew - Sector Range - combined skill < X1 - Small time based salary - 10 Waypoints
+	DONE - ii) Level 2 - Courier crew - Cluster Range - X1 < combined skill < X2 - medium salary + 2% commission - 20 Waypoints
+	DONE - iii) Level 3 - Logistics Crew - Galaxy Range - X2 < Combined skill < X3  - top salary + 5% commission - 40 waypoints
+	DONE - iv) Need a way to store crew info so that it doesn't need to be calculated on every loop?? - might be easier just to recalc!!- AI SCRIPT
+e) DONE - Train crew based on standard star rating system - UI screen
+	NO! - i) Use standard Ego method
+f) DONE - Low skill crews assigned to high skill WP lists miss out WPs that are for higher skill - AI SCRIPT
+g) NEW FEATURE - Notifications to player that crew might be inappropriate - remove ship from duty - flag as red in ship select screen
+h) NEW FEATURE - Level 3 crew to have additional skills such as refitting drones, repair to 100%(costs) etc - based on engineer and DO skills
+
+	
+	
+== UI LUA CODE ==
+1. DONE - Check for change in relation <-- don't want crews to fly to a hostile station or one they can't trade with <-- might already be covered in WP Edit screen
+2. NEW FEATURE - Deal with construction vessel requirements??
+3. DONE - Change ship and WP displays so that active/inactive/out of range WPs are displayed
+4. DONE - Show crew skills on ship screen
+5. DONE - Display waypoint active or not and waypoint range on list screen
+6. DONE - WP List screen - show zone/sector/cluster in WP station list
+7. CARRIED - Coloured text entries for waypoint state on list screen
+8. CARRIED - Put red flashing warnings back on WP edit screen
+9. CARRIED - Load/save waypoint lists
+10. DONE - Improve paste buffer contents display in waypoint list screen
+
+== AI SCRIPTS ==
+1. DONE - Finish buy and sell code - look into load/unload issues for player stations <-- just leave as is - money only changes hands between player stations anyway
+2. DONE - Check for change in relation in waypoints <-- don't want crews to fly to a hostile station or one they can't trade with
+3. DONE - #9 supersedes general checks for abort and ship destroyed etc
+4. NA - Only for NPC ships? have a look at attacked handlers?
+5. DONE - Add in update handler for waypoint change
+6. DONE - Add in update handler for debug level - ships/entities into groups
+7. DONE - (not possible) Add in fly home if script aborted??
+8. DONE - Add cancel reservations if script aborted
+
+9. CARRIED FORWARD - Add in check for destroyed in all AI scripts - message to log <-- Need report structure in place #17
+
+10. DONE - Add in WP range check vs crew skill
+11. DONE - Add rep gain for trades
+12. DONE - Add longer delay if no waypoints available on X consecutive sweeps of the list.
+13. DONE - Add check for ware before and after sale/buy to get true ware amount exchanged
+14. DONE - Add in checks for trade when arrived at trading point
+15. DONE - Vanilla Issue! Investigate OOZ drone timeout issues
+16. DONE - Look at splitting the buy/sell offer code into the buy/sell scripts - main script just tests ship capability
+
+17. DONE - Add in hooks for reporting structure <-- See #9
+
+18. DONE - Add check for able to reserve correct amount of ware
+19. DONE - Only unpark if next trade is not at same station
+20. DONE - Check we have enough money to fly the waypoint in trade.ship
+21. DONE - Add refuel code
+22. NA - Additional feature once main code working! Look at discount possibilities??? 
+23. DONE - Fly back to HB after x null sweeps
+
+24. NEW FEATURE - Service construction vessels - lua code as well
+
+== MD SCRIPTS ==
+1. CARRIED FORWARD - Complete uninstall function and test
+
+
+== REPORTING INTERFACE ==
+
+
+
+
+== IDEAS AND REMARKS ==
+
+
+
+
+== SCRATCHPAD ==
+Waypoint list logic
+Check wp is valid - - yes increment counter - if counter == max for crew then remaining waypoints are invalid
+					-- no set to invalid - next
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,339 @@
+<!--
+ 
+	Base (English) text file for MT Station Logistics mod.
+	
+	Author: wysiwyg
+  
+	Last Change:
+	Version: V0.0.1
+	Date: 06th December 2014
+  
+	X Rebirth version: 3.00+
+-->
+<language>
+<page id="150402" title="MT_Station_Logistics" descr="Texts for MT Station Logistics mod." voice="no">
+<!--  Sidebar Menu 1-20  -->
+<t id="1">Logistique de station MT</t>
+<t id="2">Gestion des vaisseaux de logistique</t>
+<!--  DetailMonitor Admin menu 21-25  -->
+<t id="21">
+Logistique de station MT - Panneau d'administration
+</t>
+<t id="22">
+Choisissez une option de la liste ci-dessous et cliquez sur Sélectionner
+</t>
+<!--  DetailMonitor Admin Menu - Buttons  -->
+<!--  Select {1001,3102} - vanilla  -->
+<!--  Back {1001,2669} - vanilla  -->
+<!--  DetailMonitor Admin menu - Options 26-40  -->
+<t id="26">Administration des vaisseaux de logistique</t>
+<t id="27">Rapports</t>
+<t id="28">Configuration</t>
+<t id="29">Membres d'équipage sans assignation</t>
+<t id="30">
+Équipage de logistique à bord d'un vaisseau incompatible
+</t>
+<!--  DetailMonitor Reports Menu 41-80  -->
+<t id="41">Logistique de station MT - Panneau des rapports</t>
+<t id="42">
+Obtenir des informations à propos de vos vaisseaux et équipages
+</t>
+<t id="44">Pas de rang</t>
+<t id="45">Entraîner</t>
+<t id="46">Rapport</t>
+<t id="47">
+Le membre d'équipage a des états de service. Expérience disponible
+</t>
+<t id="48">Le membre d'équipage n'a pas d'états de service</t>
+<!--  Captain's Ranks  -->
+<t id="49"/>
+<t id="50">Enseigne</t>
+<t id="51">Lieutenant</t>
+<t id="52">Capitaine</t>
+<t id="53">Contre-amiral</t>
+<t id="54">Vice-amiral</t>
+<t id="55">Vice-amiral d'escadre</t>
+<t id="56">Amiral</t>
+<t id="57"/>
+<t id="58"/>
+<t id="59"/>
+<!--  Defence Officer Ranks  -->
+<t id="60">Soldat</t>
+<t id="61">Caporal</t>
+<t id="62">Caporal-chef</t>
+<t id="63">Sergent</t>
+<t id="64">Sergent-chef</t>
+<t id="65">Adjudant</t>
+<t id="66">Adjudant-chef</t>
+<t id="67"/>
+<t id="68"/>
+<t id="69"/>
+<!--  Engineer Ranks  -->
+<t id="70">Mousse</t>
+<t id="71">Matelot</t>
+<t id="72">Quartier-Maître</t>
+<t id="73">Second maître</t>
+<t id="74">Maître</t>
+<t id="75">Premier maître</t>
+<t id="76">Maître principal</t>
+<t id="77"/>
+<t id="78"/>
+<t id="79"/>
+<t id="80"/>
+<!--  DetailMonitor Configuration Menu 81-100  -->
+<t id="81">
+Logistique de station MT - Panneau de configuration
+</t>
+<t id="82">Choisissez une option ci-dessous</t>
+<t id="83">Mettre le niveau de debug à 1 - Erreurs</t>
+<t id="84">Mettre le niveau de debug à 2 - Information</t>
+<t id="85">Mettre le niveau de debug à 3 - Détaillé</t>
+<t id="86">Mettre le niveau de debug à 4 - Verbeux</t>
+<t id="87">Désinstaller Logistique de station MT</t>
+<t id="88">Remise à zéro de toutes les données du mod</t>
+<!--  DetailMonitor Ship Menu 101-160  -->
+<t id="101">Administrer les vaisseaux de logistique</t>
+<t id="102">Vaisseaux de logistique configurés</t>
+<t id="103">Base</t>
+<t id="104">Score</t>
+<t id="105">Active</t>
+<t id="106">Étapes</t>
+<t id="107">Vaisseaux disponibles, à configurer</t>
+<t id="108">Retirer</t>
+<t id="109">Arrêter</t>
+<t id="110">Configurer</t>
+<t id="111">Actif ?</t>
+<t id="112">Non</t>
+<t id="113">Minage en cours</t>
+<!--  DetailMonitor Waypoint list menu 161-220  -->
+<t id="161">Gestion des étapes</t>
+<t id="162">Aucune</t>
+<t id="163">Type d'étape</t>
+<t id="164">Min</t>
+<!--  Max = vanilla {1001,19}  -->
+<!--  Ware = vanilla {1001,45}  -->
+<!--  Range = vanilla {1001,1302}  -->
+<t id="165">Actif ?</t>
+<t id="166">Aucune station sélectionnée</t>
+<t id="167">Pas d'action</t>
+<t id="168">Charger</t>
+<t id="169">Décharger</t>
+<t id="170">Voler jusqu'à</t>
+<!--  Buy = vanilla {1001,2916}  -->
+<!--  Sell = vanilla {1001,2917}  -->
+<!--  Refuel = vanilla {1002,2027}  -->
+<t id="171">Verrouillé</t>
+<t id="172">Ajouter un nouveau point de navigation</t>
+<t id="173">Vaisseau sélectionné</t>
+<t id="174">Base</t>
+<!--  DetailMonitor Waypoint Edit Menu 221-300  -->
+<t id="221">Éditer l'étape</t>
+<t id="222">Ajouter une étape</t>
+<t id="223">!!L'OBJET CHOISI DOIT ÊTRE UNE STATION!!</t>
+<t id="224">!!LA STATION DOIT AVOIR UN AGENT COMMERCIAL!!</t>
+<t id="225">
+!!LA STATION CHOISIE EST HOSTILE - CHOISISSEZ-EN UNE AUTRE!!
+</t>
+<t id="226">
+!!LA STATION CHOISIE EST HORS DE PORTÉE POUR L'ÉQUIPAGE ACTUEL!!
+</t>
+<t id="227">
+!!!ATTENTION ! LA STATION CHOISIE NE STOCKE AUCUNE MARCHANDISE QUE CE VAISSEAU PUISSE TRANSPORTER !!!
+</t>
+<t id="228">Description</t>
+<t id="229">Action</t>
+<!--  Station - vanilla {1001,3}  -->
+<t id="230">Base</t>
+<t id="231">PNJ</t>
+<t id="232">Type d'étape</t>
+<t id="233">Type de marchandise</t>
+<t id="234">Si carburant inférieur à</t>
+<t id="235">Quantité minimale</t>
+<t id="236">de la soute</t>
+<t id="237">Quantité maximale</t>
+<t id="238">Prix maximal à l'achat</t>
+<t id="239">Prix minimal à la vente</t>
+<t id="240">Médian</t>
+<t id="241">L'étape est-elle active ?</t>
+<!--  Yes - Vanilla {1001,2617}  -->
+<!--  No - Vanilla {1001,2618}  -->
+<t id="242">Changer</t>
+<t id="243">Portée de l'étape</t>
+<t id="244">Sauvegarder</t>
+<t id="245">Remonter</t>
+<t id="246">Descendre</t>
+<t id="247">Couper</t>
+<t id="248">Coller</t>
+<t id="249">Mémoire-tampon</t>
+<t id="250">Mémoire-tampon vide</t>
+<t id="251">Station de l'étape</t>
+<!--  Crew log/training screen 301-400  -->
+<t id="301">Logistique de station MT - Panneau des équipages</t>
+<t id="302">Entraîner votre membre d'équipage</t>
+<t id="303">Temps de vol</t>
+<t id="304">Salaire obtenu</t>
+<t id="305">Points d'expérience disponibles (à dépenser)</t>
+<t id="306">
+1re étoile - 25K exp 2me étoile - 50K exp 3me étoile - 100K exp 4me étoile - 200K exp 5me étoile - 400K exp
+</t>
+<t id="307"/>
+<t id="308"/>
+<t id="309"/>
+<!--  Ship Log screen 401-500  -->
+<t id="401">
+Logistique de station MT - Historique des vaisseaux
+</t>
+<t id="402">Get data from your Logistics Trader ships</t>
+<t id="403">Temps total écoulé</t>
+<t id="404">Turnover</t>
+<t id="405">Volume déplacé</t>
+<t id="406">Taux d'activité</t>
+<t id="407">Surveiller</t>
+<t id="408">(DBG) Verbose</t>
+<t id="409">Historique administratif</t>
+<t id="410">Historique d'activité</t>
+<t id="411">Niveau de surveillance du vaisseau</t>
+<t id="412">Pas d'historique connu</t>
+<t id="413">Historique</t>
+<t id="414">Étape</t>
+<t id="415"/>
+<t id="416"/>
+<t id="417"/>
+<t id="418"/>
+<t id="419"/>
+<t id="420">Erreur : signaler à l'auteur</t>
+<t id="421">Étape ignorée : statut inactif</t>
+<t id="422">
+Étape ignorée : les salaires n'ont pas été versés !
+</t>
+<t id="423">Salaires versés : le travail peut reprendre</t>
+<t id="424">
+Étape ignorée : hors de portée pour l'équipage actuel
+</t>
+<t id="425">Étape ignorée : la destination est hostile</t>
+<t id="426">
+L'étape est un simple 'voler jusqu'à'. Le vaisseau en est déjà suffisamment proche
+</t>
+<t id="427">Destination atteinte avec succès</t>
+<t id="428">
+Balayage nul : le vaisseau est à sa base donc il ne bougera pas
+</t>
+<t id="429">Balayage nul : le vaisseau est rentré à sa base</t>
+<t id="430">
+Étape ignorée : pas assez de cash pour acheter les marchandises
+</t>
+<t id="431">
+Étape ignorée : pas assez de marchandises à récupérer
+</t>
+<t id="432">Étape ignorée : les marchandises sont trop chères</t>
+<t id="433">Étape ignorée : aucune marchandise à récupérer</t>
+<t id="434">
+Étape ignorée : les quantités sont insuffisantes pour rendre le voyage rentable
+</t>
+<t id="435">
+Étape ignorée : la soute contient déjà suffisamment de cette marchandise
+</t>
+<t id="436">Étape ignorée : la soute est pleine</t>
+<t id="437">
+Étape ignorée : la cible n'accepte pas suffisamment de marchandises
+</t>
+<t id="438">
+Étape ignorée : la cible ne paie pas assez cher nos marchandises
+</t>
+<t id="439">
+Étape ignorée : la cible n'achète pas nos marchandises
+</t>
+<t id="440">Étape ignorée : pas assez de marchandises à bord</t>
+<t id="441">
+Étape ignorée : nous ne pouvons pas réserver assez de marchandises
+</t>
+<t id="442">
+Étape ignorée : la cible a été détruite ou mise hors-service
+</t>
+<t id="443">
+Étape annulée : nous ne pouvons nous arrimer à la cible
+</t>
+<t id="444">Un problème a eu lieu lors de l'échange</t>
+<t id="445">Retour à la base en cours</t>
+<t id="446"/>
+<t id="447"/>
+<t id="448"/>
+<t id="449"/>
+<t id="450"/>
+<t id="451">
+Le vaisseau a arrêté de commercer : arrêté par le joueur
+</t>
+<t id="452">Le vaisseau a été détruit</t>
+<!--  Admin log screen  -->
+<t id="460">
+Logistique de station MT - Historique administratif
+</t>
+<t id="461">
+Voici les événements relatifs aux vaisseaux de logistique
+</t>
+<t id="462">Pas d'historique administratif</t>
+<t id="463">Message</t>
+<t id="464"/>
+<t id="465"/>
+<t id="466"/>
+<t id="467"/>
+<t id="468"/>
+<t id="469"/>
+<t id="470"/>
+<!--  Admin log screen 500-530  -->
+<t id="500">Ajout à la flotte : %1</t>
+<t id="501">Retrait de la flotte : %1</t>
+<t id="502">Début de la logistique pour le vaisseau %1</t>
+<t id="503">Arrêt de la logistique pour le vaisseau %1</t>
+<t id="504">
+Problème : Le vaisseau %1 a moins de deux étapes. Il est donc à l'arrêt.
+</t>
+<t id="505">Mise à jour des étapes pour le vaisseau %1</t>
+<t id="506">Mise à jour de la base pour le vaisseau %1 : %2</t>
+<t id="507"/>
+<t id="508"/>
+<t id="509"/>
+<t id="510"/>
+<t id="10000">Administration</t>
+<t id="10001">Administrer les vaisseaux de logistique</t>
+<t id="10005">Rapports</t>
+<t id="10006">
+Obtenir les rapports d'avancement des stations et des vaisseaux
+</t>
+<t id="10008">Configurer la Logistique de station MT</t>
+<t id="10009"/>
+<t id="10010"/>
+<t id="10011"/>
+<t id="10023">Éditer le commercant</t>
+<t id="10026">
+Choisissez une station pour laquelle le commerçant travaillera
+</t>
+<t id="10035">Configurer la Logistique de station MT</t>
+<t id="10036">Éditer l'étape sélectionnée</t>
+<!--  9000 - 9999: Administration  -->
+<t id="9000">Désinstaller</t>
+<t id="9001">Niveau de debug</t>
+<t id="9002">Erreur</t>
+<t id="9003">Information</t>
+<t id="9004">Détaillé</t>
+<t id="9005">Verbeux</t>
+<t id="9992">\nPour plus d'informations, consultez l'historique</t>
+<t id="9993">version %1 active: V%2</t>
+<t id="9994">
+Émission du signal d'initialisation %1 au niveau de debug %2...
+</t>
+<t id="9995">
+%1 V%2 a été désinstallé avec succès.\nVeuillez sauvegarder votre jeu, fermer X-Rebirth, supprimer le dossier %1 dans le dossier extensions, vous désinscrire du mod dans le workshop Steam, charger le partie, sauvegarder la partie.%3
+</t>
+<t id="9996">
+Attention !\nVous redescendez votre version de %1 : V%2 -> V%3
+</t>
+<t id="9997">Installation de %1 V%2...%3</t>
+<t id="9998">
+Mise à jour de %1 détectée : V%2 -> V%3%4\nVeuillez sauvegarder et recharger votre partie.
+</t>
+<t id="9999">
+Mise à jour de la configuration de %1 trouvée.... Succès de la mise à jour !
+</t>
+</page>
+</language>
