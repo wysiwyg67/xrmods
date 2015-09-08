@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MT Station Logistics -->
+<!-- Version 1.0 - 2015-01-10 -->
+<!-- This MD script handles interaction with player ships assigned to CLS duty -->
+<!-- mdscript name="Manage_MT_Logistics" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd" -->
+<mdscript name="Manage_MT_Logistics" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="C:\Users\andy\Dropbox (Personal)\Games\XRebirth\modwip\Resources\md.xsd">
+	<cues>
+		<!-- This cue starts a ship trading -->
+		<cue name="StartCLStrader" instantiate="true" namespace="this">
+			<conditions>
+				<event_cue_signalled/>
+			</conditions>
+			<actions>
+				<set_value name="$lTradeDetails" exact="event.param"/>
+				<set_value name="$oShip" exact="$lTradeDetails.{1}"/>
+				<set_value name="$oHomebase" exact="$lTradeDetails.{2}"/>
+				<debug_text text="'Fired cue to start trading with ship %1'.[$oShip.name]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+				<!-- Get station commander and set our ship to be assigned to the homebase station -->
+				<set_value name="$oManager" exact="$oHomebase.controlentity.{entitytype.manager}"/>
+
+				<set_value name="$eCaptain" exact="$oShip.pilot"/>
+				<!-- Mark our Captain as a current XRCLS captain so that a new station manager knows to ignore the ship -->
+				<!-- We mark the npc so that we can save their individual progress for promotion etc -->
+				<do_if value="@$eCaptain">
+					<do_if value="not $eCaptain.$XRCLS?">														<!-- Check if Captain is already configured -->
+						<set_value name="$eCaptain.$XRCLS" exact="[true, 0s, 0ct, 0L, 0L,[]]"/>				<!-- Not configured so add a new configuration record -->
+						<!-- [active(boolean), hours logged(int), salary(int), experience(int), xp not spent, log(list) -->
+						<!-- Now add our captain to our list of configured NPCs -->
+						<append_to_list name="global.$XRCLS.$lConfiguredNPCs" exact="$eCaptain"/>
+					</do_if>
+					<do_else>																					<!-- Already configured so just set to active -->
+						<set_value name="$eCaptain.$XRCLS.{1}" exact="true" operation="set"/>
+					</do_else>
+				</do_if>
+
+				<set_value name="$eDefenceOfficer" exact="$oShip.defencenpc"/>
+				<!-- Mark our Defence Officer as a current XRCLS DO -->
+				<!-- We mark the npc so that we can save their individual progress for promotion etc -->
+				<do_if value="@$eDefenceOfficer">
+					<do_if value="not $eDefenceOfficer.$XRCLS?">												<!-- Check if DO is already configured -->
+						<set_value name="$eDefenceOfficer.$XRCLS" exact="[true, 0s, 0ct, 0L, 0L,[]]"/>		<!-- Not configured so add a new configuration record -->
+						<!-- [active(boolean), hours logged(int), salary(int), experience(int), xp not spent, log(list) -->
+						<!-- Now add our DO to our list of configured NPCs -->
+						<append_to_list name="global.$XRCLS.$lConfiguredNPCs" exact="$eDefenceOfficer"/>
+					</do_if>
+					<do_else>																					<!-- Already configured so just set to active -->
+						<set_value name="$eDefenceOfficer.$XRCLS.{1}" exact="true" operation="set"/>
+					</do_else>
+				</do_if>
+
+				<set_value name="$eEngineer" exact="$oShip.engineer"/>
+				<!-- Mark our engineer as a current XRCLS engineer -->
+				<!-- We mark the npc so that we can save their individual progress for promotion etc -->
+				<do_if value="@$eEngineer">
+					<do_if value="not $eEngineer.$XRCLS?">
+						<!-- Check if Engineer is already configured -->
+						<set_value name="$eEngineer.$XRCLS" exact="[true, 0s, 0ct, 0L, 0L,[]]"/>
+						<!-- Not configured so add a new configuration record -->
+						<!-- [active(boolean), hours logged(int), salary(int), experience(int), xp not spent, log(list) -->
+						<!-- Now add our Engineer to our list of configured NPCs -->
+						<append_to_list name="global.$XRCLS.$lConfiguredNPCs" exact="$eEngineer"/>
+					</do_if>
+					<do_else>
+						<!-- Already configured so just set to active -->
+						<set_value name="$eEngineer.$XRCLS.{1}" exact="true" operation="set"/>
+					</do_else>
+				</do_if>
+
+				<debug_text text ="'NPC List = %1'.[global.$XRCLS.$lConfiguredNPCs]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)" />
+				<set_object_commander object="$oShip" commander="$oHomebase" type="entitytype.manager"/>
+				<share_actor_account actor="$oShip.pilot" otherobject="$oManager" transferto="$oManager"/>
+				<!-- Start our trading script here -->
+				<start_script name="'mt_logistics.trade.ship'" object="$eCaptain">
+					<param name="lTradeDetails" value="$lTradeDetails"/>
+				</start_script> 
+			</actions>
+		</cue>
+
+		<!-- This cue stops a ship trading -->
+		<cue name="StopCLStrader" instantiate="true" namespace="this">
+			<conditions>
+				<event_cue_signalled/>
+			</conditions>
+			<actions>
+				<set_value name="$oShip" exact="event.param.{1}"/>
+				<debug_text text="'Fired cue to stop trading with ship %1'.[$oShip.name]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+				<!-- Set captain to inactive -->
+				<set_value name="$eCaptain" exact="$oShip.pilot"/>
+				<set_value name="$eDefenceOfficer" exact="$oShip.defencenpc"/>
+				<set_value name="$eEngineer" exact="$oShip.engineer"/>
+				<do_if value="@$eCaptain">
+					<set_value name="$eCaptain.$XRCLS.{1}" exact="false" operation="set"/>
+				</do_if>
+				<do_if value="@$eDefenceOfficer">
+					<set_value name="$eDefenceOfficer.$XRCLS.{1}" exact="false" operation="set"/>
+				</do_if>
+				<do_if value="@$eEngineer">
+					<set_value name="$eEngineer.$XRCLS.{1}" exact="false" operation="set"/>
+				</do_if>
+				<!-- Remove ship from station command -->
+				<remove_object_commander object="$oShip"/>
+				<remove_actor_account actor="$oShip.pilot"/>
+				<debug_text text ="'NPC List = %1'.[global.$XRCLS.$lConfiguredNPCs]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)" />
+				<!-- Stop Running the script here -->
+				<abort_scripts entity="$oShip.pilot"/>
+			</actions>
+		</cue>
+
+		<!-- This cue updates a ship that is already trading -->
+		<cue name="UpdateCLStrader" instantiate="true" namespace="this">
+			<conditions>
+				<event_cue_signalled/>
+			</conditions>
+			<actions>
+				<set_value name="$lNewTradeDetails" exact="event.param"/>
+				<set_value name="$oShip" exact="event.param.{1}"/>
+				<signal_objects object="$oShip" param="'XRCLS_UpdateWaypoints'" param2="$lNewTradeDetails"/>
+				<debug_text text="'Fired cue to update ship %1'.[$oShip.name]" filter="scripts_verbose" chance="100 * (global.$XRCLS.$iDebugLevel ge 3)"/>
+			</actions>
+		</cue>
+
+	</cues>
+</mdscript>

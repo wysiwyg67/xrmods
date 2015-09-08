@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+	MT Station Logistics
+	Version 1.2.0 - 2015-03-20
+	This is the main ai script that is run by XRCLS trade ship captains (DO and Engineer run vanilla scripts for now)
+-->
+<aiscript name="mt_logistics.trade.ship" version="3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="C:\Users\andy\Dropbox (Personal)\Games\XRebirth\modwip\Resources\aiscripts.xsd">
+	<params>
+		<!-- Pass in the trader list - ship, HB, cargolist, and waypoints -->
+		<param name="lTradeDetails" default="[]"/>
+	</params>
+	<interrupts>
+		<!-- Vanilla handler refs -->
+		<handler ref="AttackHandler" />
+		<handler ref="ScannedHandler" />
+		<!-- Handlers for updating WP list and changing debug level -->
+		<handler comment="Update the global debug level for this ship">
+			<conditions>
+				<event_object_signalled object="player.primaryship" param="'XRCLS_UpdateDebugLevel'"/>
+			</conditions>
+			<actions>
+				<debug_text text="'Interrupt Fired: Updating global debug level for all ships %1'.[this.ship.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+				<set_value name="$bShipDbg"				exact="$lTradeDetails.{13}"/>
+				<set_value name="$iDbgErr"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 0)"/>
+				<set_value name="$iDbgInfo"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 1)"/>
+				<set_value name="$iDbgDet"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 2)"/>
+				<set_value name="$iDbgVerb"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 3)"/>
+			</actions>
+		</handler>
+
+		<handler comment="Update the debug level just for this ship">
+			<conditions>
+				<event_object_signalled object="this.ship" param="'XRCLS_UpdateShipDbgLvl'"/>
+			</conditions>
+			<actions>
+				<set_value name="$bShipDbg"				exact="event.param2"/>
+				<set_value name="$iDbgErr"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 0)"/>
+				<set_value name="$iDbgInfo"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 1)"/>
+				<set_value name="$iDbgDet"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 2)"/>
+				<set_value name="$iDbgVerb"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 3)"/>
+				<debug_text text="'Interrupt Fired: Updating debug level for %1 Debug Verb = %2 ShipDbg = %3 Global = %4'.[this.ship.knownname, $iDbgVerb,$bShipDbg,global.$XRCLS.$iDebugLevel]" filter="scripts_verbose" chance="$iDbgDet"/>
+			</actions>
+		</handler>
+		
+		<handler comment="Update the traders parameters - DEPRACATE and use ship table index update instead">
+			<conditions>
+				<event_object_signalled object="this.ship" param="'XRCLS_UpdateWaypoints'"/>
+			</conditions>
+			<actions>
+				<!-- set_value name="$lTradeDetails" exact="event.param2"/ -->
+				<debug_text text="'Interrupt Fired:  Crew Skill: %1  Crew Level: %2  Number of Waypoints = %3'.[$iCrewSkill, $iCrewLevel, event.param2.{4}.count]" filter="scripts_verbose" chance="$iDbgVerb"/>
+			</actions>
+		</handler>
+	</interrupts>
+	<init>
+		<set_command command="command.freetrade" />
+		<!-- Main action for waiting times -->
+		<set_command_action commandaction="commandaction.searchingtrades" />
+		<!-- TODO: Maybe do our own logging here - e.g. message to log ship, crew, range, #WPs etc -->
+		<set_value name="$oShip" exact="this.ship" comment="set to allow reporting if ship dies"/>
+	</init>
+	<attention min="unknown"> 
+		<actions>
+			<set_value name="$lTradeDetails"		exact="global.$XRCLS.$lTradeShips.{$oShip}"/>
+			<!-- Setup the debugging levels -->
+			<set_value name="$bShipDbg"				exact="$lTradeDetails.{13}" comment="0 or 1 to override error dbg level"/>
+			<set_value name="$iDbgErr"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 0)"/>
+			<set_value name="$iDbgInfo"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 1)"/>
+			<set_value name="$iDbgDet"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 2)"/>
+			<set_value name="$iDbgVerb"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 3)"/>
+
+			<set_value name="$tLastWageRun"			exact="player.age"/>
+			<set_value name="$tStartTime"			exact="player.age"/>
+			<set_value name="$tCumlTime"			exact="0s"/>
+			<set_value name="$lWPTypeList"			exact="['No Action','Load','Unload','Buy','Sell','Fly To','Refuel']"/>
+			<set_value name="$iNullSweepCounter"	exact="0"						comment="Counts the number of times we have a zero hit sweep of the list"/>
+			<set_value name="$iAmountOwed"			exact="0ct"						comment="Holds amount of wages owed until they are paid"/>
+			<set_value name="$iWageBill"			exact="0ct"						comment="Running total of wages to pay"/>
+			<set_value name="$bStaffOnStrike"		exact="false"					comment="True if staff didn't get paid on last wage run"/>
+
+			<!-- Perpetual loop - can be interrupted and aborted only -->
+			<do_while value="true">
+				<!-- Set our tradelist here to ensure list is up to date -->
+				<set_value name="$lTradeDetails"	exact="global.$XRCLS.$lTradeShips.{$oShip}" comment="Uses new table indexing method - post 3.50"/>
+
+				<set_value name="$lWaypoints"		exact="$lTradeDetails.{4}"		comment="Get our list of waypoints"/>
+				<set_value name="$iShipIndex"		exact="$lTradeDetails.{10}"		comment="Index of this trader in global list"/>
+				<set_value name="$iWPCount"			exact="1"						comment="Counter for the waypoint loop"/>	
+				<set_value name="$bIsNullSweep"		exact="true"					comment="True if we got a null sweep"/>
+
+				<!-- Loop through all our waypoints looking for valid ones to execute -->
+				<do_while value="$iWPCount le $lWaypoints.count" comment="Use a while loop with compares as our waypoint list size could change at any time">
+					<!-- v1.13 - waypoint list and so on can now be updated using the new (post 3.50) table variable -->
+					<set_value name="$lTradeDetails" exact="global.$XRCLS.$lTradeShips.{$oShip}" comment="Uses new table indexing method - post 3.50"/>
+					<!-- v1.20 - Set debug level after every wp to catch setting change whilst in another script -->
+					<set_value name="$bShipDbg"		exact="global.$XRCLS.$lTradeShips.{$oShip}.{13}" comment="0 or 1 to override error dbg level"/>
+					<set_value name="$iDbgErr"		exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 0)"/>
+					<set_value name="$iDbgInfo"		exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 1)"/>
+					<set_value name="$iDbgDet"		exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 2)"/>
+					<set_value name="$iDbgVerb"		exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 3)"/>
+					<!-- v1.07 added these here so that ship index gets updated on every waypoint sweep in case it changes -->
+					<set_value name="$lWaypoints"	exact="$lTradeDetails.{4}"		comment="Get our list of waypoints"/>
+					<!-- v1.30 - Need to handle waypoint list shrinking -->
+					<do_if value="$lWaypoints.count lt $iWPCount" comment="need to update counter to reflect change in length of WP list">
+						<set_value name="$iWPCount" exact="$lWaypoints.count"/>
+					</do_if>
+					<!-- Calculate our crew level after each waypoint to stop cheating -->
+					<set_value name="$iCrewSkill"	exact="@this.combinedskill + @this.ship.defencenpc.combinedskill + @this.ship.engineer.combinedskill"/>
+					<set_value name="$iCrewLevel"	exact="1"/>
+					<set_value name="$aTradeRetArg"	exact="'NO_TRADE'"/>
+					<set_value name="$iUnitPrice"	exact="0ct"/>
+					<set_value name="$iVolume"		exact="0"/>
+					<!-- set crew level based on crew skills -->
+					<do_if value="$iCrewSkill"			min="200" max="249">
+						<set_value name="$iCrewLevel"		exact="2"/>
+					</do_if>
+					<do_if value="$iCrewSkill ge 250">
+						<set_value name="$iCrewLevel"		exact="3"/>
+					</do_if>
+					<!-- debug_text text="'Crew Skill: %1  Crew Level: %2  Number of Waypoints = %3'.[$iCrewSkill, $iCrewLevel, $lWaypoints.count]" filter="scripts_verbose" chance="$iDbgVerb"/ -->
+					<!-- Extract our waypoint for analysis -->
+					<set_value name="$lWaypoint"		exact="$lWaypoints.{$iWPCount}"/>
+					<set_value name="$iWPIndex"			exact="$lWaypoints.{$iWPCount}.{1}"		comment="Index of WP in list"/>
+					<set_value name="$bIsWPActive"		exact="$lWaypoints.{$iWPCount}.{2}"		comment="Note that this is an integer value as Lua thinks false=0 is actually true lol"/>
+					<set_value name="$oStation"			exact="$lWaypoints.{$iWPCount}.{3}"		comment="Target station"/>
+					<set_value name="$iWPType"			exact="$lWaypoints.{$iWPCount}.{4}"		comment="WP Type (buy, sell, fly to etc.) is integer"/>
+					<set_value name="$iMinAmount"		exact="$lWaypoints.{$iWPCount}.{6}"		comment="minimum amount worth setting off for"/>
+					<set_value name="$iMaxAmount"		exact="$lWaypoints.{$iWPCount}.{7}"		comment="Maximum stored in hold at any given time"/>
+					<set_value name="$tWare"			exact="'none'"							comment="default for logging"/>
+					<do_if value="$lWaypoints.{$iWPCount}.{5} != {150402,162}"					comment="'None Selected'">
+						<set_value name="$tWare"			exact="ware.{$lWaypoints.{$iWPCount}.{5}}"		comment="Needed to coerce the string value back to a ware type"/>
+						<set_value name="$iDesiredAmount"	exact="$iMaxAmount - this.ship.cargo.{$tWare}.count" comment="The amount we need to fulfil our maximium load"/>
+					</do_if>
+					<set_value name="$iPrice"			exact="$lWaypoints.{$iWPCount}.{8}"		comment="Max or Min price depending on whether buying or selling"/>
+					<set_value name="$iWPRange"			exact="$lWaypoints.{$iWPCount}.{9}"		comment="Flight range of waypoint relative to home base"/>
+
+					<set_value name="$bIsTradeValid"	exact="false"							comment="Set this to true only if we are to perform our traderun"/>
+					<set_value name="$lTradeOffer"		exact="'none'"							comment="Holder for our return from get offer script"/>
+					<set_value name="$iActualAmount"	exact="0"								comment="The actual amount we are going to trade"/>
+					
+					<set_value name="$tFlyingTime"		exact="0s"/>
+					<set_value name="$iCaptainsWage"	exact="0ct"/>
+					<set_value name="$iDefenceWage"		exact="0ct"/>
+					<set_value name="$iEngineerWage"	exact="0ct"/>
+					<set_value name="$iXPoints"			exact="0"/>
+
+					<!-- Check our homebase account level -->
+					<set_value name="$oHomebase"		exact="$lTradeDetails.{2}"/>
+
+					<!-- v1.20 - Handler section for CV supply setting -->
+					<!-- First check to see if our next waypoint is at the same station as we are docked at -->
+					<do_if value="$iWPCount gt 1">
+						<set_value name="$oLastStation" exact="$lWaypoints.{$iWPCount - 1}.{3}"/>
+					</do_if>
+					<do_else>
+						<set_value name="$oLastStation" exact="$lWaypoints.{$lWaypoints.count}.{3}"/>
+					</do_else>
+
+					<set_value name="$bNoCV" exact="false"/>
+					<do_if value="$oStation == $oLastStation">
+						<!-- need to check here if next station's waypoints are valid -->
+						<!-- Try to get a trade offer to see if it's worth flying -->
+						<do_if value="($iWPType != 1) and ($iWPType != 6)">
+							<run_script name="'mt_logistics.trade.gettradeoffer'" sinceversion="3">
+								<param		 name="lWaypoint"		value="$lWaypoint"/>
+								<param		 name="DebugLvl"		value="$bShipDbg"/>
+								<save_retval name="aRetArg"			variable="$aRetArg"/>
+								<save_retval name="lTradeOffer"		variable="$lTradeOffer"/>
+								<save_retval name="iActualAmount"	variable="$iActualAmount"/>
+								<save_retval name="bIsTradeValid"	variable="$bIsTradeValid"/>
+							</run_script>
+							<do_if value="$bIsTradeValid">
+								<set_value name="$bNoCV" exact="true"/>
+							</do_if>
+						</do_if>
+						<remove_value name="$aRetArg"/>
+						<remove_value name="$lTradeOffer"/>
+						<remove_value name="$iActualAmount"/>
+						<remove_value name="$bIsTradeValid"/>
+					</do_if>
+					<remove_value name="$oNextStation"/>
+
+					<set_value name="$bCVOffersFound" exact="false"/>
+					<set_value name="$lValidCVBuyOffers" exact="[]"/>
+					<do_if value="(@global.$XRCLS.$lTradeShips.{$oShip}.{15}.{1} ge 1) and not $bNoCV" comment="Check to see if our CV supply setting is active and that our next target is not the one we're already at">
+						<!-- Check our staff are not on strike -->
+						<do_if value="$bStaffOnStrike" negate="true">
+							<!-- Get a list of current cargo an check if any can be supplied to CVs -->
+							<set_value name="$lCargoList" exact="this.ship.cargo.list"/>
+							<set_value name="$lCVTradeBasket" exact="[]"/>
+							<do_all exact="$lCargoList.count" counter="$iWareCounter">
+								<debug_text text="'Waretype onboard:  %1  Amount:  %2'.[$lCargoList.{$iWareCounter}, this.ship.cargo.{$lCargoList.{$iWareCounter}}.count]"  filter="scripts_verbose" chance="$iDbgVerb"/>
+								<!-- Match cargo type to that usually required by CVs -->
+								<set_value name="$lCVWares" exact="global.$XRCLS.$lCVWareTypes"/>
+								<do_all exact="$lCVWares.count" counter="$i">
+									<do_if value="$lCargoList.{$iWareCounter} == $lCVWares.{$i}">
+										<append_to_list name="$lCVTradeBasket" exact="$lCargoList.{$iWareCounter}"/>
+									</do_if>
+								</do_all>
+							</do_all>
+							<do_if value="$lCVTradeBasket.count gt 0">
+								<!-- We have some CV wares so now we need to look if there are any CVs that need them -->
+								<debug_text text="'Wares found in hold that can be traded with CV'"  filter="scripts_verbose" chance="$iDbgVerb"/>
+								<set_value name="$range" exact="$oHomebase.sector" />
+								<do_if value="$iCrewLevel == 2">
+									<set_value name="$range" exact="$oHomebase.cluster" />
+								</do_if>
+								<do_elseif value="$iCrewLevel == 3">
+									<set_value name="$range" exact="player.galaxy" />
+								</do_elseif>
+
+								<do_all exact="$lCVTradeBasket.count" counter="$i">
+									<debug_text text="'CV Ware:  %1'.[$lCVTradeBasket.{$i}]"  filter="scripts_verbose" chance="$iDbgVerb"/>
+									<find_buy_offer tradepartner="this.ship" wares="$lCVTradeBasket.{$i}" space="$range" result="$lBuyOffers" multiple="true">
+										<match_buyer class="class.ship_xl" comment="try and find build platforms" />
+									</find_buy_offer>
+									<do_if value="$lBuyOffers.count gt 0">
+										<do_all exact="$lBuyOffers.count" counter="$count">
+											<do_if value="$lBuyOffers.{$count}.offeramount le this.ship.cargo.{$lBuyOffers.{$count}.ware}.count">
+												<append_to_list name="$lValidCVBuyOffers" exact="$lBuyOffers.{$count}"/>
+												<set_value name="$bCVOffersFound" exact="true"/>
+											</do_if>
+											<do_else>
+												<debug_text text="'Order too big for this ship\'s current cargo amount'"  filter="scripts_verbose" chance="$iDbgVerb"/>
+											</do_else>
+										</do_all>
+									</do_if>
+									<remove_value name="$lBuyOffers"/>
+								</do_all>
+								<do_if value="$bCVOffersFound">
+									<debug_text text="'Valid CV trade offers found'"  filter="scripts_verbose" chance="$iDbgVerb"/>
+									<do_all exact="$lValidCVBuyOffers.count" counter="$i">
+										<debug_text text="'SCODA:  %1   Ware: %2   Amount: %3'.[$lValidCVBuyOffers.{$i}.buyer.name, $lValidCVBuyOffers.{$i}.ware, $lValidCVBuyOffers.{$i}.offeramount.{this}]" filter="scripts_verbose" chance="$iDbgVerb"/>
+									</do_all>
+									<!-- We found some valid buy offers on a CV in range so pick one and fly it  -->
+									<sort_trades name="$lValidCVBuyOffers" tradelist="$lValidCVBuyOffers" sorter="distance" refobject="this.ship"/>
+									<do_all exact="$lValidCVBuyOffers.count" counter="$i">
+										<debug_text text="'SORTED TRADES BY DISTANCE FROM SHIP: SCODA:  %1   Ware: %2   Amount: %3'.[$lValidCVBuyOffers.{$i}.buyer.name, $lValidCVBuyOffers.{$i}.ware, $lValidCVBuyOffers.{$i}.offeramount.{this}]" filter="scripts_verbose" chance="$iDbgVerb"/>
+									</do_all>
+								</do_if>
+								<do_else>
+									<debug_text text="'No Valid CV offers found!!'"  filter="scripts_verbose" chance="$iDbgVerb"/>
+								</do_else>
+							</do_if>
+							<do_else>
+								<debug_text text="'Not Carrying any wares that can be traded with CV'"  filter="scripts_verbose" chance="$iDbgVerb"/>
+							</do_else>
+						</do_if> <!-- Staff on strike so CV supply skipped -->
+						<do_else>
+							<debug_text text="'CV Supply: Staff on strike so skipping this activity'"  filter="scripts_verbose" chance="$iDbgVerb"/>
+						</do_else>
+					</do_if>    <!-- Not Suppling CVs so Skipped -->
+					<do_else>
+						<do_if value="$bNoCV">
+							<debug_text text="'Next waypoint is at same station as where we are docked'" filter="scripts_verbose" chance="$iDbgVerb"/>
+						</do_if>
+						<do_else>
+							<debug_text text="'Not set to supply CV so skipping this activity'"  filter="scripts_verbose" chance="$iDbgVerb"/>							
+						</do_else>
+					</do_else>
+					<debug_text text="'Completed CV Supply Check'"  filter="scripts_verbose" chance="$iDbgVerb"/>
+
+					<!-- Fly the CV supply waypoints if there are any valid ones -->
+					<do_if value="$bCVOffersFound and not $bStaffOnStrike">
+						<set_value name="$lTradeOfferCV" exact="$lValidCVBuyOffers.{1}" comment="get closest buy offer"/>
+						<remove_value name="$lValidCVBuyOffers"/>
+						<debug_text text="'Flying to supply %1 %2 to %3'.[$lTradeOfferCV.offeramount, $lTradeOfferCV.ware, $lTradeOfferCV.buyer.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<!-- Setup a dummy waypoint so that we can do the same as a normal waypoint at the end of the loop -->
+						<!-- Set some variables for reporting and logs -->						
+						<set_value name="$iWPType" exact="3" comment="CV Supply is always unload"/>
+						<set_value name="$oStation" exact="$lTradeOfferCV.buyer"/>
+						<set_value name="$tWare" exact="$lTradeOfferCV.ware"/>
+						<set_value name="$lWaypointCV" exact="[99, 1, $lTradeOfferCV.buyer, 3, $lTradeOfferCV.ware, $lTradeOfferCV.offeramount, $lTradeOfferCV.offeramount, 0, 3]"/>
+						<!-- Set up and fly the CV Supply run -->
+						<debug_text text="'Waypoint %1 set to \'%2\' at %3'.[$iWPCount, $lWPTypeList.{$iWPType}, $oStation.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<debug_text text="'Free space available: %1 - min amount %3 - max amount %4  ware = %2 '.[this.ship.cargo.{$tWare}.free , $tWare, $iMinAmount, $iMaxAmount]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<!-- Perform our trade run -->
+						<debug_text text="'Waypoint %1 - Performing Trade'.['CV Trade']"			filter="scripts_verbose" chance="$iDbgVerb"/>
+						<set_value name="$bIsTradeValid"		exact="false"						comment="Reset this variable for next waypoint just in case"/>
+						<set_value name="$tTripStartTime"		exact="player.age"/>
+						<set_value name="$tFlyingTime"			exact="0"							comment="Trip timer"/>
+						<run_script name="'mt_logistics.trade.ship.perform_run'"					sinceversion="2">
+							<param		 name="lWaypoint"		value="$lWaypointCV"				comment="Pass waypoint to buy script for offer checking"/>
+							<param		 name="DebugLvl"		value="$iDbgVerb"/>
+							<save_retval name="RetArg"			variable="$aTradeRetArg"			comment="The result of our trade on return"/>
+							<save_retval name="UnitPrice"		variable="$iUnitPrice"				comment="The unit price we traded at"/>
+							<save_retval name="Volume"			variable="$iVolume"					comment="The actual volume we ended up trading"/>
+						</run_script>
+						<!-- Set null sweep counter if trade was a fail -->
+						<do_if value="$aTradeRetArg == 'TRADE_SUCCESS'">
+							<set_value name="$bIsNullSweep" exact="false"/>
+						</do_if>
+						<set_value name="$tTripEndTime"			exact="player.age"/>
+						<set_value name="$tFlyingTime"			exact="$tTripEndTime - $tTripStartTime"/>
+						<remove_value name="$tTripStartTime"/>
+						<remove_value name="$tTripEndTime"/>
+						<debug_text text="'Waypoint %1 - Completed Trade Script - %2 Round Trip Time %3'.['CV Trade', $aTradeRetArg, $tFlyingTime/1min]" filter="scripts_verbose" chance="$iDbgVerb"/>
+					</do_if>
+					
+					<!-- Now analyse our waypoint - first check if the waypoint is active -->
+					<do_elseif value="$bIsWPActive lt 1">
+						<debug_text text="'Waypoint %1 set to inactive so skipping to next waypoint'.[$iWPCount]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<set_value name="$aTradeRetArg"		exact="'WP_INACTIVE'"/>
+					</do_elseif>
+					
+					<!-- Check for staff not getting paid -->
+					<do_elseif value="$bStaffOnStrike">
+						<debug_text text="'Waypoint %1 - staff on strike - didnt get paid for last trip'.[$iWPCount]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<do_if value="$oHomebase.controlentity.{entitytype.manager}.money ge $iAmountOwed">
+							<transfer_money from="$oHomebase.controlentity.{entitytype.manager}" to="player.entity" amount="$iAmountOwed"/>
+							<reward_player money="- $iAmountOwed"/>
+							<set_value name="$bStaffOnStrike"	exact="false"		comment="Back to work!"/>
+							<set_value name="$iAmountOwed"		exact="0ct"			comment="Don't owe anything"/>
+							<set_value name="$aTradeRetArg"		exact="'WAGES_PAID'"/>
+						</do_if>
+						<set_value name="$aTradeRetArg"		exact="'NO_WAGES'"/>
+					</do_elseif>
+						
+					<!-- Check that WP is in range for crew skill level -->
+					<do_elseif value="$iWPRange gt $iCrewLevel">
+						<debug_text text="'Waypoint %1 is out of range for the current crew so skipping'.[$iWPCount]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<set_value name="$aTradeRetArg"		exact="'ERR_RANGE'"/>
+					</do_elseif>
+						
+					<!-- Check here for relation status of target NPC station (covers relation changes that happen after waypoint is set) -->
+					<do_elseif value="$oStation.mayattack.{faction.player} == true" comment="Do not fly to stations that have become hostile after their waypoint was set">
+						<debug_text text="'Waypoint %1 - Skipping: station is now hostile'.[$iWPCount]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<set_value name="$aTradeRetArg"		exact="'ERR_HOSTILE'"/>
+					</do_elseif>
+					
+					<!-- Now check our waypoint type and act accordingly -->
+					<do_elseif value="$iWPType == 1" comment="Type 1 is no action so skip">
+						<debug_text text="'Waypoint %1 set to \'no action\' so skipping to next waypoint'.[$iWPCount]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<set_value name="$aTradeRetArg"		exact="'WP_INACTIVE'"/>
+					</do_elseif>
+
+					<!-- Check for a "fly to" Waypoint -->
+					<do_elseif value="$iWPType == 6"															comment="Waypoint is a Fly To waypoint">
+						<debug_text text="'Waypoint %1 set to \'Fly To\' %2'.[$iWPCount,$oStation.knownname]"	filter="scripts_verbose" chance="$iDbgVerb"/>
+						<do_if value="this.ship.distanceto.[$oStation, position.[0,0,0]] lt 10km"				comment="Range check to prevent this constantly flying about">
+							<debug_text text="'Close enough to %1 so no need to move'.[$oStation.knownname]"	filter="scripts_verbose" chance="$iDbgVerb"/>
+							<set_value name="$aTradeRetArg"		exact="'WP_FLYTO_NOMOVE'"/>
+						</do_if>
+						<do_else>
+							<!-- Set a trip timer here -->
+							<set_value name="$tTripStartTime"		exact="player.age"/>
+							<set_value name="$tFlyingTime"			exact="0"/>
+							<run_script	name="'move.generic'"		sinceversion="1">
+								<param name="destination"			value="$oStation"/>
+								<param name="debugchance"			value="$iDbgVerb"/>
+							</run_script>
+							<set_value name="$tTripEndTime"			exact="player.age"/>
+							<set_value name="$tFlyingTime"			exact="$tTripEndTime - $tTripStartTime"/>
+							<remove_value name="$tTripStartTime"/>
+							<remove_value name="$tTripEndTime"/>
+							<debug_text text="'We\'ve arrived at %1 Trip Time was %2'.[$oStation.knownname, $tFlyingTime/1min]" filter="scripts_verbose" chance="$iDbgVerb"/>
+							<set_value name="$aTradeRetArg"		exact="'WP_FLYTO'"/>
+						</do_else>
+					</do_elseif>
+
+					<!-- Check for a Load, Unload, buy, sell or refuel Waypoint -->
+					<do_elseif value="$iWPType == 2 or $iWPType == 3 or $iWPType == 4 or $iWPType == 5 or $iWPType == 7" comment="Waypoint is a Load waypoint">
+						<debug_text text="'Waypoint %1 set to \'%2\' at %3'.[$iWPCount, $lWPTypeList.{$iWPType}, $oStation.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<debug_text text="'Free space available: %1 - min amount %3 - max amount %4  ware = %2 '.[this.ship.cargo.{$tWare}.free , $tWare, $iMinAmount, $iMaxAmount]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<!-- Perform our trade run -->
+						<debug_text text="'Waypoint %1 - Performing Trade'.[$iWPCount]"				filter="scripts_verbose" chance="$iDbgVerb"/>
+						<set_value name="$bIsTradeValid"		exact="false"						comment="Reset this variable for next waypoint just in case"/>
+						<set_value name="$tTripStartTime"		exact="player.age"/>
+						<set_value name="$tFlyingTime"			exact="0"							comment="Trip timer"/>
+						<run_script name="'mt_logistics.trade.ship.perform_run'"					sinceversion="1">
+							<param		 name="lWaypoint"		value="$lWaypoint"					comment="Pass waypoint to buy script for offer checking"/>
+							<param		 name="DebugLvl"		value="$iDbgVerb"/>
+							<save_retval name="RetArg"			variable="$aTradeRetArg"			comment="The result of our trade on return"/>
+							<save_retval name="UnitPrice"		variable="$iUnitPrice"				comment="The unit price we traded at"/>
+							<save_retval name="Volume"			variable="$iVolume"					comment="The actual volume we ended up trading"/>
+						</run_script>
+						<!-- Set null sweep counter if trade was a fail -->
+						<do_if value="$aTradeRetArg == 'TRADE_SUCCESS'">
+							<set_value name="$bIsNullSweep" exact="false"/>
+						</do_if>
+						<set_value name="$tTripEndTime"			exact="player.age"/>
+						<set_value name="$tFlyingTime"			exact="$tTripEndTime - $tTripStartTime"/>
+						<remove_value name="$tTripStartTime"/>
+						<remove_value name="$tTripEndTime"/>
+						<debug_text text="'Waypoint %1 - Completed Trade Script - %2 Round Trip Time %3'.[$iWPCount, $aTradeRetArg, $tFlyingTime/1min]" filter="scripts_verbose" chance="$iDbgVerb"/>
+					</do_elseif>
+
+					<!-- Unhandled waypoint type detected-->
+					<do_else>
+						<debug_text text="'Unhandled Waypoint Type Detected!! %1 - %2'.[$iWPCount,$iWPType]" filter="scripts_verbose" chance="$iDbgVerb"/>
+					</do_else>
+					
+					<!-- Update total cumulative time -->
+					<set_value name="global.$XRCLS.$lTradeShips.{$oShip}.{9}.{2}"	exact="player.age - $tStartTime" operation="add"/>
+					<set_value name="$tTotalWPTime"		exact="player.age - $tStartTime"/>
+					<set_value name="$tStartTime"		exact="player.age"/>
+
+					<!-- Salary and XP calculations -->
+					<do_if value="$tFlyingTime gt 0s">
+						<set_value name="$iSalary"		exact="0ct"						comment="Salary calc"/>
+						<set_value name="$iXPoints"		exact="0L"						comment="XP Calc"/>
+						<!-- Increment crew salary and XP here based on fly time, volume and commission -->
+						<do_if value="$iWPType != 6" comment="Only calculate volume if ware is valid">
+							<set_value name="$iCubicMetres" exact="($iVolume * $tWare.volume)LF"/>
+						</do_if>
+						<do_else>
+							<set_value name="$iCubicMetres" exact="0LF"/>
+						</do_else>
+						<do_if value="$iCrewLevel == 1" comment="Salary and xp for L1 crew">
+							<!-- L1 crew gets basic time based salary and time+volume based xp -->
+							<set_value name="$iFlightTime" exact="($tFlyingTime/60s)L"/>
+							<set_value name="$iSalary" exact="($iFlightTime)Cr*20ct" comment="Salary calc"/>
+							<set_value name="$iCommission" exact="0ct"/>
+							<set_value name="$iTotalSalary" exact="$iSalary + $iCommission"/>
+							<set_value name="$iXPVol" exact="$iCubicMetres / 10.0"/>
+							<set_value name="$iXPoints" exact="(($iTotalSalary)L + ($iXPVol)L)/20L" comment="XP Calc"/>
+						</do_if>
+						<do_if value="$iCrewLevel == 2" comment="Salary and xp for L2 crew">
+							<!-- L2 crew gets intermediate salary and time+volume+commission based xp -->
+							<set_value name="$iFlightTime" exact="($tFlyingTime/60s)L"/>
+							<set_value name="$iSalary" exact="($iFlightTime)Cr*50ct" comment="Salary calc"/>
+							<set_value name="$iCommission" exact="0ct"/>
+							<set_value name="$iTotalSalary" exact="$iSalary + $iCommission"/>
+							<set_value name="$iXPVol" exact="$iCubicMetres / 10.0"/>
+							<set_value name="$iXPoints" exact="(($iTotalSalary)L + ($iXPVol)L)/20L" comment="XP Calc"/>
+						</do_if>
+						<do_if value="$iCrewLevel == 3" comment="Salary and xp for L3 crew">
+							<!-- L3 crew gets top salary + 0.5% commission on sales to NPC stations and time+volume+commission based xp -->
+							<set_value name="$iFlightTime" exact="($tFlyingTime/60s)L"/>
+							<set_value name="$iSalary" exact="($iFlightTime)Cr*100ct" comment="Salary calc"/>
+							<do_if value="$iWPType == 5" comment="Sale to NPC station">
+								<set_value name="$iCommission" exact="(($iVolume)ct * ($iUnitPrice - $tWare.minprice))/100ct"/>
+								<debug_text text="'Waypoint %1 - Crew earned %2 commission volume = %3 unitprice = %4 minprice = %5'.[$iWPCount, $iCommission, $iVolume, $iUnitPrice, $tWare.minprice]" filter="scripts_verbose" chance="$iDbgVerb"/>
+								<do_if value="$iCommission lt 0ct">
+									<set_value name="$iCommission" exact="0ct"/>
+								</do_if>
+							</do_if>
+							<do_else>
+								<set_value name="$iCommission" exact="0ct"/>
+							</do_else>
+							<set_value name="$iTotalSalary" exact="$iSalary + $iCommission"/>
+							<set_value name="$iXPVol" exact="$iCubicMetres / 10.0"/>
+							<set_value name="$iXPoints" exact="(($iTotalSalary)L + ($iXPVol)L)/20L" comment="XP Calc"/>
+						</do_if>
+						<debug_text text="'Waypoint %1 - Crew earned %2 basic %4 commission each and gained %3 XP each Volume %5 UnitPr %6 XP Vol: %7'.[$iWPCount, $iSalary/1Cr, $iXPoints, $iCommission/1Cr, $iVolume, $iUnitPrice, $iXPVol]" filter="scripts_verbose" chance="$iDbgVerb"/>
+
+						<!-- Individual salary apportionments -->
+						<!-- Captain - always gets 100% of salary -->
+						<do_if value="true">
+							<!-- set_value name="$iWageBill" exact="0ct"/ -->
+							<set_value name="$iCaptainsWage" exact="$iTotalSalary"/>
+							<set_value name="this.$XRCLS.{2}" exact="$tFlyingTime" operation="add"/>
+							<set_value name="this.$XRCLS.{3}" exact="$iCaptainsWage" operation="add"/>
+							<set_value name="this.$XRCLS.{4}" exact="$iXPoints" operation="add"/>
+							<set_value name="this.$XRCLS.{5}" exact="$iXPoints" operation="add" comment="Experience available to spend on training"/>
+							<set_value name="$iWageBill" exact="$iCaptainsWage" operation="add"/>
+						</do_if>
+								
+						<!-- DO gets 75% salary -->
+						<do_if value="@this.ship.defencenpc.exists" comment="Set values if DO is onboard">
+							<set_value name="$iDefenceWage" exact="(($iTotalSalary)f * 0.75)/1ct"/>
+							<set_value name="this.ship.defencenpc.$XRCLS.{2}" exact="$tFlyingTime" operation="add"/>
+							<set_value name="this.ship.defencenpc.$XRCLS.{3}" exact="$iDefenceWage" operation="add"/>
+							<set_value name="this.ship.defencenpc.$XRCLS.{4}" exact="$iXPoints" operation="add"/>
+							<set_value name="this.ship.defencenpc.$XRCLS.{5}" exact="$iXPoints" operation="add" comment="Experience available to spend on training"/>
+							<set_value name="$iWageBill" exact="$iDefenceWage" operation="add"/>
+						</do_if>
+						<do_else>
+							<set_value name="$iDefenceWage" exact="0ct"/>
+						</do_else>
+						
+						<!-- Engineer gets 50% salary -->
+						<do_if value="@this.ship.engineer.exists" comment="Set values if DO is onboard">
+							<set_value name="$iEngineerWage" exact="(($iTotalSalary)f * 0.5)/1ct"/>
+							<set_value name="this.ship.engineer.$XRCLS.{2}" exact="$tFlyingTime" operation="add"/>
+							<set_value name="this.ship.engineer.$XRCLS.{3}" exact="$iEngineerWage" operation="add"/>
+							<set_value name="this.ship.engineer.$XRCLS.{4}" exact="$iXPoints" operation="add"/>
+							<set_value name="this.ship.engineer.$XRCLS.{5}" exact="$iXPoints" operation="add" comment="Experience available to spend on training"/>
+							<set_value name="$iWageBill" exact="$iEngineerWage" operation="add"/>
+						</do_if>
+						<do_else>
+							<set_value name="$iEngineerWage" exact="0ct"/>
+						</do_else>
+
+						<!-- Set ship stats -->
+						<set_value name="global.$XRCLS.$lTradeShips.{$oShip}.{9}.{1}" exact="$tFlyingTime" operation="add"/>
+						<set_value name="global.$XRCLS.$lTradeShips.{$oShip}.{9}.{3}" exact="$iCubicMetres" operation="add"/>
+						<do_if value="$iWPType == 2 or $iWPType == 4">
+							<!-- Workaround to solve issues with coercion after release -->
+							<set_value name="$iTrade" exact="(global.$XRCLS.$lTradeShips.{$oShip}.{9}.{4})LF"/>
+							<set_value name="$iTrade" exact="($iVolume * $iUnitPrice)LF" operation="add"/>
+							<set_value name="global.$XRCLS.$lTradeShips.{$oShip}.{9}.{4}" exact="$iTrade" operation="set"/>
+						</do_if>
+						<do_else>
+							<set_value name="$iTrade" exact="(global.$XRCLS.$lTradeShips.{$oShip}.{9}.{4})LF"/>
+							<set_value name="$iTrade" exact="0LF" operation="add"/>
+							<set_value name="global.$XRCLS.$lTradeShips.{$oShip}.{9}.{4}" exact="$iTrade" operation="set"/>							
+						</do_else>
+						<debug_text text="'Waypoint %1 - Captain: %2 ,  DO: %3 ,  Engineer:  %4  Total Wage Bill: %5'.[$iWPCount, $iCaptainsWage/1Cr, $iDefenceWage/1Cr, $iEngineerWage/1Cr, $iWageBill/1Cr]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<debug_text text="'Waypoint %1 - Captain cuml: %2 ,  DO cuml: %3 ,  Engineer cuml:  %4'.[$iWPCount, this.$XRCLS.{3}/1Cr, this.ship.defencenpc.$XRCLS.{3}/1Cr, this.ship.engineer.$XRCLS.{3}/1Cr ]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<debug_text text="'Waypoint %1 - Captain XP: %2 ,  DO XP: %3 ,  Engineer XP:  %4'.[$iWPCount, this.$XRCLS.{4}, this.ship.defencenpc.$XRCLS.{4}, this.ship.engineer.$XRCLS.{4}]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<debug_text text="'Waypoint %1 - Ship Stats:  Flying Time %2 - Total Time %3 - Volume %4 - turnover %5'.[$iWPCount, global.$XRCLS.$lTradeShips.{$oShip}.{9}.{1}, global.$XRCLS.$lTradeShips.{$oShip}.{9}.{2}, global.$XRCLS.$lTradeShips.{$oShip}.{9}.{3}, $iTrade]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<remove_value name="$iTrade"/>
+
+						<!-- Log if trade was successful -->
+						<do_if value="$aTradeRetArg == 'TRADE_SUCCESS'">
+							<!-- [player.age, id(wp-complete = 1), traderetarg, ship, hb, wptype, trade-station, ware, amount, unitprice, captsal, dosal, engsal, XP, flighttime] -->
+							<set_value name="$lCapLogMsg" exact="[player.age, 1, $aTradeRetArg, this.ship, $oHomebase, $iWPType, $oStation, $tWare, $iVolume, $iUnitPrice, 
+																$iCaptainsWage, $iDefenceWage, $iEngineerWage, $iXPoints, $tFlyingTime, '', $iWPCount]"/>
+							<set_value name="global.$XRCLS.$lTradeShips.{$oShip}.{7}.{1}" exact="$lCapLogMsg" operation="insert"/>
+							<!-- Remove excess trade log entries keep to 100 long -->
+							<do_if value="global.$XRCLS.$lTradeShips.{$oShip}.{7}.count gt 100">
+								<remove_value name="global.$XRCLS.$lTradeShips.{$oShip}.{7}.{101}"/>
+							</do_if>
+						</do_if>
+					</do_if>
+
+					<!-- Conditional on Tracking variable in ships log + add 50 entry limit -->
+					<!-- set_value name="$bTrack" exact="global.$XRCLS.$lTradeShips.{$oShip}.{14} gt 0"/ -->
+					<set_value name="$lLogEntry" exact="[]"/>
+					<!-- do_if value="$bTrack" -->
+						<set_value name="$idx" exact="1" operation="add"/>
+						<set_value name="$lLogEntry" exact="[player.age, 2, $aTradeRetArg, this.ship, $oHomebase, $iWPType, $oStation, $tWare, $iVolume, $iUnitPrice, 
+															$iCaptainsWage, $iDefenceWage, $iEngineerWage, $iXPoints, $tFlyingTime, $idx, $iWPCount]"/>
+						<set_value name="this.$XRCLS.{6}.{1}" exact="$lLogEntry" operation="insert" comment="Track log entry"/>
+						<do_if value="this.$XRCLS.{6}.count gt 50">
+							<remove_value name="this.$XRCLS.{6}.{51}" comment="Keep the list at 50 entries long"/>
+						</do_if>
+					<!-- /do_if -->
+					<!-- remove_value name="$bTrack"/ -->
+					<remove_value name="$lLogEntry"/>
+
+					<!-- End of waypoint sweep so we need to update our global variable for safekeeping -->
+					
+					<debug_text text="'Waypoint %1 - Captain XP: %2 ,  DO XP: %3 ,  Engineer XP:  %4'.[$iWPCount, this.$XRCLS.{4}, this.ship.defencenpc.$XRCLS.{4}, this.ship.engineer.$XRCLS.{4}]" filter="scripts_verbose" chance="$iDbgVerb"/>
+					<!-- debug_text text="'Waypoint %1 - Ship Stats:  Flying Time %2 - Total Time %3 - Volume %4 - turnover %5'.[$iWPCount, global.$XRCLS.$lTradeShips.{$iShipIndex}.{9}.{1}, global.$XRCLS.$lTradeShips.{$iShipIndex}.{9}.{2}, global.$XRCLS.$lTradeShips.{$iShipIndex}.{9}.{3}, global.$XRCLS.$lTradeShips.{$iShipIndex}.{9}.{4}]" filter="scripts_verbose" chance="$iDbgVerb"/ -->
+					<debug_text text="'Waypoint %1 - Ship Stats:  Flying Time %2 - Total Time %3 - Volume %4 - turnover %5'.[$iWPCount, global.$XRCLS.$lTradeShips.{$oShip}.{9}.{1}, global.$XRCLS.$lTradeShips.{$oShip}.{9}.{2}, global.$XRCLS.$lTradeShips.{$oShip}.{9}.{3}, global.$XRCLS.$lTradeShips.{$oShip}.{9}.{4}]" filter="scripts_verbose" chance="$iDbgVerb"/>
+
+					<!-- Increment our waypoint counter - need to skip here if we did a CV run -->
+					<do_if value="not @$bCVOffersFound">
+						<set_value name="$iWPCount" operation="add" comment="Increment by 1"/>
+					</do_if>
+						
+					<!-- debug level switchable delay -->
+					<do_if value="$bShipDbg gt 3">
+						<set_value name="$iWPDelay" exact="5s"/>
+					</do_if>
+					<do_else>
+						<set_value name="$iWPDelay" exact="25s - (3s * (this.skill.navigation)s)"/>
+					</do_else>
+					
+					<!-- Skip delay if ship is attached to a CV to prevent hogging only docking slot -->
+					<do_if value="not @$bCVOffersFound">
+						<wait exact="$iWPDelay" sinceversion="1" comment="Set this wait time based on crew skills"/>
+					</do_if>
+					<set_value name="$bCVOffersFound" exact="false"/>
+					<set_value name="$bNoCV" exact="false"/>
+				</do_while>
+
+				<do_if value="$bShipDbg gt 3">
+					<set_value name="$iWPDelay" exact="10s"/>
+				</do_if>
+				<do_else>
+					<set_value name="$iWPDelay" exact="110s - (15s * (this.skill.navigation)s)"/>
+				</do_else>
+				<wait exact="$iWPDelay" sinceversion="1" comment="Set this wait time based on crew skills"/>
+
+				<!-- Pay wages - Subtract total from station account here and deal with not being able to pay -->
+				<!-- Add delay here so that wages are only paid every 30 minutes -->
+				<do_if value="$oHomebase.controlentity.{entitytype.manager}.money ge $iWageBill and not $bStaffOnStrike">
+					<set_value name="$bStaffOnStrike" exact="false"/>
+					<do_if value="(player.age - $tLastWageRun) gt 1800s" comment="Pay wages every 30 mins">
+						<do_if value="$iWageBill gt 0ct">
+							<debug_text text="'Paying wages for this sweep %1'.[$iWageBill/1Cr]" filter="scripts_verbose" chance="$iDbgVerb"/>
+							<transfer_money from="$oHomebase.controlentity.{entitytype.manager}" to="player.entity" amount="$iWageBill"/>
+							<reward_player money="- $iWageBill" comment="Workaround as cant find another way to reduce station budget"/>
+							<set_value name="$iWageBill" exact="0ct"/>
+							<set_value name="$tLastWageRun" exact="player.age"/>
+						</do_if>
+						<do_else comment="Nothing to pay this time">
+							<debug_text text="'Wage bill for this period is zero'" filter="scripts_verbose" chance="$iDbgVerb"/>
+						</do_else>
+					</do_if>
+					<do_else comment="Not time to pay wages yet">
+						<debug_text text="'Wage bill %1 is not yet due. Due in %2 minutes'.[$iWageBill/1Cr, (1800s - (player.age - $tLastWageRun))/1min]" filter="scripts_verbose" chance="$iDbgVerb"/>
+					</do_else>
+				</do_if>
+				<do_else comment="Can't pay staff so they go on stop">
+					<set_value name="$bStaffOnStrike" exact="true"/>
+					<set_value name="$iAmountOwed" exact="$iWageBill"/>
+					<set_value name="$iWageBill" exact="0ct"/>
+				</do_else>
+
+				<!-- Do null sweep calculations -->
+				<debug_text text="'Is Null Sweep? %1 Null Sweep Counter = %2'.[$bIsNullSweep, $iNullSweepCounter]" filter="scripts_verbose" chance="$iDbgVerb"/>
+				<do_if value="$bIsNullSweep">
+					<set_value name="$iNullSweepCounter" exact="1" operation="add"/>
+					<set_value name="$bIsNullSweep" exact="false" comment="Reset for next sweep"/>
+					<debug_text text="'We got a null WP sweep'" filter="scripts_verbose" chance="$iDbgVerb"/>
+					<!-- Make sure we undock first so that we don't hog a docking slot - only do this on a null sweep so we don't undock if two trades at the same station -->
+					<do_if value="this.ship.parkedat.exists" comment="If we are parked">
+						<debug_text text="'We got a null WP sweep so undock'" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<run_script name="'move.unpark'" sinceversion="1"/>					
+					</do_if>
+					<do_if value="$iNullSweepCounter ge 5">
+						<debug_text text="'Longer wait due to 5 null sweeps of the waypoint list'" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<set_value name="$iNullSweepCounter" exact="0"/>
+						<!-- debug level switchable delay -->
+						<do_if value="$bShipDbg gt 3">
+							<set_value name="$iWPDelay" exact="10s"/>
+						</do_if>
+						<do_else>
+							<set_value name="$iWPDelay" exact="300s - (50s * (this.skill.navigation)s)"/>
+						</do_else>
+						<wait exact="$iWPDelay" sinceversion="1" comment="Set this wait time based on crew skills"/>
+						<!-- Fly back to homebase here to avoid possibility of hanging about in dangerous space for too long -->
+						<set_value name="$aTradeRetArg"		exact="'WP_NULLSWEEP_FLYING'"/>
+						<!-- set_value name="$bTrack" exact="global.$XRCLS.$lTradeShips.{$oShip}.{14} gt 0"/ -->
+						<set_value name="$lLogEntry" exact="[]"/>
+						<!-- do_if value="$bTrack" -->
+							<set_value name="$idx" exact="1" operation="add"/>
+							<set_value name="$lLogEntry" exact="[player.age, 2, $aTradeRetArg, this.ship, $oHomebase, $iWPType, $oStation, $tWare, $iVolume, $iUnitPrice, 
+															$iCaptainsWage, $iDefenceWage, $iEngineerWage, $iXPoints, $tFlyingTime, $idx, $iWPCount - 1]"/>
+							<set_value name="this.$XRCLS.{6}.{1}" exact="$lLogEntry" operation="insert" comment="Track log entry"/>
+							<do_if value="this.$XRCLS.{6}.count gt 50">
+								<remove_value name="this.$XRCLS.{6}.{51}" comment="Keep the list at 50 entries long"/>
+							</do_if>
+						<!-- /do_if -->
+						<!-- remove_value name="$bTrack"/ -->
+						<remove_value name="$lLogEntry"/>
+						<debug_text text="'Null sweep timeout - flying back to homebase'" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<do_if value="this.ship.distanceto.[$oHomebase, position.[0,0,0]] lt 10km" comment="Range check to prevent this constantly flying about">
+							<debug_text text="'Close enough to Homebase %1 so no need to move'.[$oHomebase.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+							<set_value name="$aTradeRetArg"		exact="'WP_NULLSWEEP_NOFLY'"/>
+						</do_if>
+						<do_else>
+							<run_script name="'move.generic'" sinceversion="1">
+								<param name="destination" value="$oHomebase"/>
+								<param name="debugchance" value="$iDbgVerb"/>
+							</run_script>
+							<debug_text text="'We\'ve arrived at Homebase %1'.[$oHomebase.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+							<set_value name="$aTradeRetArg"		exact="'WP_NULLSWEEP_FLY'"/>
+						</do_else>
+						<!-- Conditional on Tracking variable in ships log + add 50 entry limit -->
+						<!-- set_value name="$bTrack" exact="global.$XRCLS.$lTradeShips.{$oShip}.{14} gt 0"/ -->
+						<set_value name="$lLogEntry" exact="[]"/>
+						<!-- do_if value="$bTrack" -->
+							<set_value name="$idx" exact="1" operation="add"/>
+							<set_value name="$lLogEntry" exact="[player.age, 2, $aTradeRetArg, this.ship, $oHomebase, $iWPType, $oStation, $tWare, $iVolume, $iUnitPrice, 
+															$iCaptainsWage, $iDefenceWage, $iEngineerWage, $iXPoints, $tFlyingTime, $idx, $iWPCount - 1]"/>
+							<set_value name="this.$XRCLS.{6}.{1}" exact="$lLogEntry" operation="insert" comment="Track log entry"/>
+							<do_if value="this.$XRCLS.{6}.count gt 50">
+								<remove_value name="this.$XRCLS.{6}.{51}" comment="Keep the list at 50 entries long"/>
+							</do_if>
+						<!-- /do_if -->
+						<!-- remove_value name="$bTrack"/ -->
+						<remove_value name="$lLogEntry"/>
+					</do_if>
+				</do_if>
+				<do_else comment="No null sweep so carry on">
+					<set_value name="$iNullSweepCounter" exact="0"/>
+				</do_else>
+			<!-- Ends main loop -->
+			</do_while>
+		</actions>
+	</attention>
+
+	<on_abort>
+		<!-- TODO: Check do we need to clean up our variables here?? -->
+		<debug_text text="'Stopped running script for ship %1'.[$oShip.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+		<set_value name="this.$XRCLS.{6}" exact="[]" operation="set" comment="Track log entry delete"/>
+		<do_if value="this.ship.exists and this.ship.isoperational" comment="Reporting hook">
+			<debug_text text="'Ship removed from XRCLS Roster -  %1'.[this.ship.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+			<!-- Set values to stop ship and crew if ship is re-added to player squad or assiged a new superior through map or property menu -->
+			<set_value name="this.$XRCLS.{1}" exact="false" comment="Captain stopped trading"/>
+			<set_value name="this.ship.defencenpc.$XRCLS.{1}" exact="false" comment="DO stopped trading"/>
+			<set_value name="this.ship.engineer.$XRCLS.{1}" exact="false" comment="Engineer stopped trading"/>
+			<set_value name="global.$XRCLS.$lTradeShips.{this.ship}.{8}" exact="1" comment="Ship marked as stopped"/>
+		</do_if>
+		<do_else>
+			<debug_text text="'Ship is dead - %1'.[$oShip.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+		</do_else>
+	</on_abort>
+</aiscript>

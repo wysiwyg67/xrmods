@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<content id="ws_383547458" name="MitchTech Station Logistics" description="Facilitates CLS style ships for player stations" author="wysiwyg" version="130" date="2015-04-03" save="false" lastupdate="1428079271">
+  <dependency version="300"/>
+  <text language="44" name="MitchTech Station Logistics" description="Facilitates CLS style ships for player stations" author="wysiwyg"/>
+</content>

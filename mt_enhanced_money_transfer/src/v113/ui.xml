@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<addon name="mt_enhanced_moneytransfer" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../core/addon.xsd">
+	<environment type="detailmonitor">
+		<file name="ui/mt_enhanced_moneytransfer.lua" />
+		<dependency name="ego_detailmonitorHelper" />
+	</environment>
+</addon>

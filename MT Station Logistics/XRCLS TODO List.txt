@@ -1,5 +1,15 @@
 -- Notes for development of XRCLS Mod
-Last update: 2015-01-13
+Last update: 2015-03-15
+== NOTES FOR CHECKING SYNC OF SHIPS AND WP LISTS ETC ==
+Pseudo Code
+
+1  Check this.ship and waypoint list ship are the same. 
+	-- If YES then set all variables
+		-- Check again to make sure no change whilst setting
+			-- If changed GOTO 1 else continue
+	-- If NO then reload new variable and GOTO 1
+
+
 == UPDATE CHECLIST ==
 1. Change version number in md.mt_logistics.main.xml
 2. Ensure debugging is off

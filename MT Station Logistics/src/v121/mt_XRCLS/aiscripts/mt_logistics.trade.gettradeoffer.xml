@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+	MT Station Logistics
+	Version 1.2.0 - 2015-03-20
+	This ai script is executed by the captain to get a trade offer
+-->
+<aiscript name="mt_logistics.trade.gettradeoffer" version="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="C:\Users\andy\Dropbox (Personal)\Games\XRebirth\modwip\Resources\aiscripts.xsd">
+	<!-- Returns a valid trade offer with an amount, reservation and return code - be sure to cancel the reserved amount if the trade fails -->
+	<params>
+		<param name="lWaypoint" default="[]"	comment="The waypoint we are needing to get a trade offer for"/>
+		<param name="DebugLvl"	default="0"/>
+	</params>
+	<interrupts>
+		<!-- Vanilla handler refs -->
+		<handler ref="AttackHandler" />
+		<handler ref="ScannedHandler" />
+		<!-- Handlers for changing debug level -->
+		<handler comment="Update the global debug level for this ship">
+			<conditions>
+				<event_object_signalled object="player.primaryship" param="'XRCLS_UpdateDebugLevel'"/>
+			</conditions>
+			<actions>
+				<debug_text text="'Interrupt Fired: Updating global debug level for all ships %1'.[this.ship.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+				<set_value name="$bShipDbg"				exact="$DebugLvl"/>
+				<set_value name="$iDbgErr"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 0)"/>
+				<set_value name="$iDbgInfo"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 1)"/>
+				<set_value name="$iDbgDet"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 2)"/>
+				<set_value name="$iDbgVerb"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 3)"/>
+			</actions>
+		</handler>
+
+		<handler comment="Update the debug level just for this ship">
+			<conditions>
+				<event_object_signalled object="this.ship" param="'XRCLS_UpdateShipDbgLvl'"/>
+			</conditions>
+			<actions>
+				<set_value name="$bShipDbg"				exact="event.param2"/>
+				<set_value name="$iDbgErr"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 0)"/>
+				<set_value name="$iDbgInfo"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 1)"/>
+				<set_value name="$iDbgDet"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 2)"/>
+				<set_value name="$iDbgVerb"				exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 3)"/>
+				<debug_text text="'Interrupt Fired: Updating debug level for %1 Debug Verb = %2 ShipDbg = %3 Global = %4'.[this.ship.knownname, $iDbgVerb,$bShipDbg,global.$XRCLS.$iDebugLevel]" filter="scripts_verbose" chance="$iDbgVerb"/>
+			</actions>
+		</handler>
+	</interrupts>
+	<init>
+		<set_command_action commandaction="commandaction.searchingtrades" />
+	</init>
+	<attention min="unknown">
+		<actions>
+			<!-- Set the debugging output chance -->
+			<!-- Setup the debugging levels -->
+			<set_value name="$bShipDbg"			exact="$DebugLvl"		comment="0 or 1 to override error dbg level"/>
+			<set_value name="$iDbgErr"			exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 0)"/>
+			<set_value name="$iDbgInfo"			exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 1)"/>
+			<set_value name="$iDbgDet"			exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 2)"/>
+			<set_value name="$iDbgVerb"			exact="100 * ((global.$XRCLS.$iDebugLevel + $bShipDbg) ge 3)"/>
+			<!-- Extract our waypoint for analysis -->
+			<set_value name="$iWPCount"			exact="$lWaypoint.{1}"				comment="Index of WP in list"/>
+			<set_value name="$bIsWPActive"		exact="$lWaypoint.{2}"				comment="Note that this is an integer value as Lua thinks false=0 is actually true lol"/>
+			<set_value name="$oStation"			exact="$lWaypoint.{3}"				comment="Target station"/>
+			<set_value name="$iWPType"			exact="$lWaypoint.{4}"				comment="WP Type (buy, sell, fly to etc.) is integer"/>
+			<set_value name="$tWare"			exact="$lWaypoint.{5}"				comment="Needed to coerce the string value back to a ware type"/>
+			<do_if value="$iWPCount != 99" comment="No need to coerce CV waypoints">
+				<set_value name="$tWare"			exact="ware.{$lWaypoint.{5}}"	comment="Needed to coerce the string value back to a ware type"/>
+			</do_if>
+			<set_value name="$iMinAmount"		exact="$lWaypoint.{6}"				comment="minimum amount worth setting off for"/>
+			<set_value name="$iMaxAmount"		exact="$lWaypoint.{7}"				comment="Maximum stored in hold at any given time"/>
+			<set_value name="$iPrice"			exact="$lWaypoint.{8}"				comment="Max or Min price depending on whether buying or selling"/>
+			<set_value name="$iWPRange"			exact="$lWaypoint.{9}"				comment="Flight range of waypoint relative to home base"/>
+			<!-- Set some variables used locally -->
+			<set_value name="$iDesiredAmount"	exact="$iMaxAmount - this.ship.cargo.{$tWare}.count"	comment="The amount we need to fulfil our maximium load for a buy order"/>
+			<set_value name="$aRetArg"			exact="'NO_TRADEOFFER'"				comment="Default assuming we get no offer"/>
+			<set_value name="$lTradeOffer"		exact="'none'"						comment="Empty holder for our returned tradeoffer"/>
+			<set_value name="$bIsTradeValid"	exact="false"						comment="True if we found a valid trade offer"/>
+			<set_value name="$bPriceOK"			exact="true"						comment="True if ware unit price is in required price range for buy and sell"/>
+			<set_value name="$iActualAmount"	exact="0"							comment="Our actual reserved amount to return"/>
+			<!-- Remove any ware reservations we might still have at this station -->
+			<remove_ware_reservation object="$oStation" entity="this"/>
+
+			<!-- Buy, load or refuel waypoint -->
+			<do_if value="$iWPType == 2 or $iWPType == 4 or $iWPType == 7" comment="Buy, load or refuel">
+				<do_if value="$iWPType == 7" comment="Refuel waypoint">
+					<set_value name="$tWare"			exact="ware.fuelcells"/>
+					<set_value name="$iMaxAmount"		exact="this.ship.cargo.{ware.fuelcells}.max"/>
+					<set_value name="$iDesiredAmount"	exact="$iMaxAmount - this.ship.cargo.{ware.fuelcells}.count"	comment="Fill to brim on a refuel"/>
+					<set_value name="$iMinAmount"		exact="$iMaxAmount - $iMinAmount" comment="Viability check inverted for refuel?? - CHECK!!"/>
+				</do_if>
+				<do_if value="this.ship.cargo.{$tWare}.free lt $iDesiredAmount" comment="Cant fit desired amount in so set to freespace left">
+					<set_value name="$iDesiredAmount" exact="this.ship.cargo.{$tWare}.free"/>
+				</do_if>
+				<!-- Check that our cargo space available is greater than the minimum amount we are going to buy -->
+				<do_if value="$iMinAmount le this.ship.cargo.{$tWare}.free" comment="We have room so continue - also prevents refuelling if tank has more than $iMinAmount">
+					<!-- check how many of the target ware we already have onboard -->
+					<do_if value="this.ship.cargo.{$tWare}.count lt $iMaxAmount">
+						<!-- Check that the amount we want is greater than the minimum trip amount -->
+						<do_if value="$iDesiredAmount ge $iMinAmount">
+							<!-- If we get here we need to check the station for a valid load/buy offer -->
+							<find_sell_offer tradepartner="this.ship" seller="$oStation" space="$oStation.zone" result="$lSellOffers" wares="[$tWare]" multiple="true"/>
+							<do_if value="$lSellOffers.count gt 0">
+								<do_all exact="$lSellOffers.count" counter="$i" comment="Debugging">
+									<debug_text text="'WP #%3 - Sell Offer Found: Ware %1 Amount %2'.[$lSellOffers.{$i}.ware, $lSellOffers.{$i}.offeramount, $iWPCount]" filter="scripts_verbose" chance="$iDbgVerb"/>
+								</do_all>
+								<!-- Get our trade offer -->
+								<set_value name="$lTradeOffer"		exact="$lSellOffers.{1}"/>
+								<!-- If this is a buy waypoint we need to check the price of the offer to ensure it meets the WP criteria -->
+								<do_if value ="$iWPType == 4"												comment="Assumes we will pay any price for refuelling">
+									<set_value name="$iSellPrice"	exact="$lTradeOffer.unitprice/100ct"	comment="Get unit price of offer"/>
+									<do_if value="$iPrice lt $iSellPrice">
+										<set_value name="$bPriceOK" exact="false"							comment="WP fails on price check"/>
+									</do_if>
+								</do_if>
+								<!-- Price OK? -->
+								<do_if value="$bPriceOK">
+									<!-- Now check that there is enough ware to meet our needs at the station -->
+									<do_if value="$lTradeOffer.offeramount ge $iMinAmount"							comment="TODO: Should we check for more than one offer found??">
+										<do_if value="$lTradeOffer.offeramount lt $iDesiredAmount">
+											<set_value name="$iActualAmount" exact="$lTradeOffer.offeramount"	comment="Buy as much as the station has"/>
+										</do_if>
+										<do_else>
+											<set_value name="$iActualAmount" exact="$iDesiredAmount"				comment="Buy the amount we want - for refuel the final docked check should ensure we fill up"/>
+										</do_else>
+										<!-- Check that we have enough funds to make the purchase -->
+										<set_value name="$iTradeCost" exact="$lTradeOffer.unitprice * $iActualAmount"/>
+										<do_if value="$iTradeCost lt this.money">
+											<!-- We have a valid sale if we got to here so let's go ahead and reserve and fly it! -->
+											<debug_text text="'Waypoint %1 is valid - loading %2 %3 from %4  Price = %5 (Buyfree: %6 Sellfree %7)'.[ $iWPCount, $iActualAmount, $lTradeOffer.ware, $lTradeOffer.seller.knownname, $lTradeOffer.unitprice/100ct, $lTradeOffer.buyfree, $lTradeOffer.sellfree]" filter="scripts_verbose" chance="$iDbgVerb"/>
+											<!-- CALL SCRIPT TO DO TRADE -->
+											<set_value name="$bIsTradeValid" exact="true"/>
+											<set_value name="$aRetArg"			exact="'ERR_SELLOFFER_SUCCESS'"			comment="Found a valid trade"/>
+										</do_if>
+										<do_else>
+											<debug_text text="'Waypoint %1 - Invalid: Not enough cash to make purchase Need: %2 Have %3'.[ $iWPCount, $iTradeCost, this.money/100ct]" filter="scripts_verbose" chance="$iDbgVerb"/>
+											<set_value name="$aRetArg"			exact="'ERR_SELLOFFER_NOCASH'"/>
+										</do_else>
+									</do_if>
+									<do_else>
+										<debug_text text="'Waypoint %1 not viable because there are not enough wares for sale at %2'.[$iWPCount, $oStation.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+										<set_value name="$aRetArg"			exact="'ERR_SELLOFFER_NOWARES'"/>
+									</do_else>
+								</do_if>
+								<do_else comment="Wares too expensive">
+									<debug_text text="'Waypoint %1 not viable because %2 are too expensive (%3cr each) at %4'.[$iWPCount, $lTradeOffer.ware, $iSellPrice, $oStation.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+									<set_value name="$aRetArg"			exact="'ERR_SELLOFFER_COST'"/>
+								</do_else>
+							</do_if>
+							<do_else>
+								<debug_text text="'Waypoint %1 not viable because there are no sell offers for the ware at %2'.[$iWPCount, $oStation.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+								<set_value name="$aRetArg"			exact="'ERR_SELLOFFER_NO_OFFER'"/>
+							</do_else>
+						</do_if>
+						<do_else>
+							<debug_text text="'Waypoint %1 not viable because the amount needed is too small for a viable trip'.[$iWPCount]" filter="scripts_verbose" chance="$iDbgVerb"/>
+							<set_value name="$aRetArg"			exact="'ERR_SELLOFFER_NOTVIABLE_AMOUNT'"/>
+						</do_else>
+					</do_if>
+					<do_else>
+						<debug_text text="'Waypoint %1 not viable because we already have enough of this ware onboard'.[$iWPCount]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<set_value name="$aRetArg"			exact="'ERR_SELLOFFER_DONTNEED'"/>
+					</do_else>
+				</do_if>
+				<do_else>
+					<debug_text text="'Waypoint %1 not viable due to not enough cargospace'.[$iWPCount]" filter="scripts_verbose" chance="$iDbgVerb"/>
+					<set_value name="$aRetArg"			exact="'ERR_SELLOFFER_NOCARGOSPACE'"/>
+				</do_else>
+			</do_if>
+
+			<!-- Unload or sell waypoint -->
+			<do_elseif value="$iWPType == 3 or $iWPType == 5" comment="Unload or sell">
+				<!-- Check that we have the desired ware on board first -->
+				<do_if value="this.ship.cargo.{$tWare}.count ge $iMinAmount">
+					<!-- We have enough so lets check our target station to see if it wants any -->
+					<find_buy_offer tradepartner="this.ship" buyer="$oStation" space="$oStation.zone" wares="[$tWare]" result="$lBuyOffers" multiple="true"/>
+					<do_if value="$lBuyOffers.count gt 0">
+						<do_all exact="$lBuyOffers.count" counter="$i">
+							<debug_text text="'WP #%3 - Buy Offer Found: Ware %1 Amount %2 Station: %4 Zone: %5'.[$lBuyOffers.{$i}.ware, $lBuyOffers.{$i}.offeramount, $iWPCount, $lBuyOffers.{$i}.buyer.knownname,  $lBuyOffers.{$i}.buyer.zone.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						</do_all>
+						<!-- Get our trade offer -->
+						<set_value name="$lTradeOffer"		exact="$lBuyOffers.{1}"/>
+						<!-- Check price if this is a sell waypoint -->
+						<do_if value ="$iWPType == 5"												comment="None">
+							<set_value name="$iBuyPrice"	exact="$lTradeOffer.unitprice/100ct"	comment="Get unit price of offer"/>
+							<do_if value="$iPrice gt $iBuyPrice">
+								<set_value name="$bPriceOK" exact="false"							comment="WP fails on price check"/>
+							</do_if>
+						</do_if>
+						<!-- Price OK? -->
+						<do_if value="$bPriceOK">
+							<!-- Now check that there are enough wares required at the station -->
+							<do_if value="$lTradeOffer.offeramount ge $iMinAmount">
+								<do_if value="$lTradeOffer.offeramount lt $iMaxAmount">
+									<do_if value="this.ship.cargo.{$tWare}.count gt $lTradeOffer.offeramount">
+										<set_value name="$iActualAmount" exact="$lTradeOffer.offeramount" comment="Sell the amount the station wants"/>
+										<debug_text text="'1. Sell Amount set to %1 cargo = %2'.[$iActualAmount,this.ship.cargo.{$tWare}.count]" filter="scripts_verbose" chance="$iDbgVerb"/>
+									</do_if>
+									<do_else>
+										<set_value name="$iActualAmount" exact="this.ship.cargo.{$tWare}.count" comment="Sell as much as we have"/>
+										<debug_text text="'2. Sell Amount set to %1 cargo = %2'.[$iActualAmount,this.ship.cargo.{$tWare}.count]" filter="scripts_verbose" chance="$iDbgVerb"/>
+									</do_else>
+								</do_if>
+								<do_else comment="Station wants more than we are selling">
+									<do_if value="this.ship.cargo.{$tWare}.count gt $iMaxAmount">
+										<set_value name="$iActualAmount" exact="$iMaxAmount" comment="Sell the amount we want to sell"/>
+										<debug_text text="'3. Sell Amount set to %1 cargo = %2'.[$iActualAmount,this.ship.cargo.{$tWare}.count]" filter="scripts_verbose" chance="$iDbgVerb"/>
+									</do_if>
+									<do_else>
+										<set_value name="$iActualAmount" exact="this.ship.cargo.{$tWare}.count" comment="Sell as much as we have"/>
+										<debug_text text="'4. Sell Amount set to %1 cargo = %2'.[$iActualAmount,this.ship.cargo.{$tWare}.count]" filter="scripts_verbose" chance="$iDbgVerb"/>
+									</do_else>
+								</do_else>
+								<!-- We have a valid sale if we got to here so let's go ahead and reserve and fly it! -->
+								<debug_text text="'Waypoint %1 is valid - Unloading %2 %3 to %4  Price = %5 (Buyfree: %6 Sellfree %7)'.[ $iWPCount, $iActualAmount, $lTradeOffer.ware, $lTradeOffer.buyer.knownname, $lTradeOffer.unitprice/100ct, $lTradeOffer.buyfree, $lTradeOffer.sellfree]" filter="scripts_verbose" chance="$iDbgVerb"/>
+								<!-- CALL SCRIPT TO DO TRADE -->
+								<set_value name="$bIsTradeValid" exact="true"/>
+								<set_value name="$aRetArg"			exact="'ERR_BUYOFFER_SUCCESS'"			comment="Found a valid trade"/>
+							</do_if>
+							<do_else>
+								<debug_text text="'Waypoint %1 not viable because there are not enough wares required at %2'.[$iWPCount, $oStation.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+								<set_value name="$aRetArg"			exact="'ERR_BUYOFFER_NOTENOUGHWARES'"/>
+							</do_else>
+						</do_if>
+						<do_else comment="Station won't pay enough">
+							<debug_text text="'Waypoint %1 not viable because %2 wont pay enough'.[$iWPCount, $oStation.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+							<set_value name="$aRetArg"			exact="'ERR_BUYOFFER_WONTPAY'"/>
+						</do_else>
+					</do_if>
+					<do_else>
+						<debug_text text="'Waypoint %1 not viable because there are no buy offers for the ware at %2'.[$iWPCount, $oStation.knownname]" filter="scripts_verbose" chance="$iDbgVerb"/>
+						<set_value name="$aRetArg"			exact="'ERR_BUYOFFER_NO_OFFER'"/>
+					</do_else>
+				</do_if>
+				<do_else>
+					<debug_text text="'Waypoint %1 not viable due to not enough of ware %2 onboard. Have %3 - Wanted at least %4'.[$iWPCount, $tWare, this.ship.cargo.{$tWare}.count, $iMinAmount]" filter="scripts_verbose" chance="$iDbgVerb"/>
+					<set_value name="$aRetArg"			exact="'ERR_BUYOFFER_NOTENOUGHCARGO'"/>
+				</do_else>
+			</do_elseif>					
+		
+			<!-- Unhandled waypoint type -->
+			<do_else>
+				<debug_text text="'Unhandled Waypoint Type Detected!! %1'.[$iWPType]" filter="scripts_verbose" chance="$iDbgVerb"/>
+				<set_value name="$aRetArg"			exact="'ERR_UNHANDLED_WP'"/>
+			</do_else>	
+			
+			<!-- Reserve our waypoint wares if trade offer is good -->
+			<do_if value="$bIsTradeValid" comment="Offer good so reserve the wares">
+				<set_value name="$iReserved" exact="0"/>
+				<add_ware_reservation object="$oStation" entity="this" ware="$tWare" amount="$iActualAmount" result="$iReserved"/>
+				<set_value name="$iActualAmount" exact="$iReserved"/>
+				<do_if value="$iReserved lt $iMinAmount">
+					<debug_text text="'Target Station %1 - Failed to reserve sufficient stock Wanted %2 Got Offered %3'.[$oStation.knownname, $iMinAmount, $iReserved]" filter="scripts_verbose" chance="$iDbgVerb"/>
+					<set_value name="$aRetArg"			exact="'ERR_CANTRESERVE'"/>
+					<remove_ware_reservation object="$oStation" entity="this" comment="Remove the reservation"/>
+					<set_value name="$lTradeOffer" exact="'none'"/>
+				</do_if>
+			</do_if>
+
+			<!-- Cleanup -->
+			<remove_value name="$bShipDbg"/>
+			<remove_value name="$iDbgErr"/>
+			<remove_value name="$iDbgInfo"/>
+			<remove_value name="$iDbgDet"/>
+			<remove_value name="$iDbgVerb"/>
+			<remove_value name="$iWPCount"/>
+			<remove_value name="$bIsWPActive"/>
+			<remove_value name="$iWPType"/>
+			<remove_value name="$tWare"/>
+			<remove_value name="$iMinAmount"/>
+			<remove_value name="$iMaxAmount"/>
+			<remove_value name="$iPrice"/>
+			<remove_value name="$iWPRange"/>
+			<remove_value name="$iDesiredAmount"/>
+			<remove_value name="$bPriceOK"/>
+
+			<!-- Return values to parent -->
+			<return>
+				<retval name="aRetArg"			value="$aRetArg"/>
+				<retval name="lTradeOffer"		value="$lTradeOffer"/>
+				<retval name="iActualAmount"	value="$iActualAmount"/>
+				<retval name="bIsTradeValid"	value="$bIsTradeValid"/>
+			</return>
+		</actions>
+	</attention>
+	<on_abort>
+		<do_if value="$oStation.exists">
+			<remove_ware_reservation object="$oStation" entity="this" comment="Remove the reservation"/>
+			<remove_value name="$oStation"/>
+		</do_if>
+	</on_abort>
+</aiscript>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<addon name="xrcls-menu" viewtype="detailmonitor" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../core/coreaddon.xsd">
+	<file name="ui\addons\menu\mainmenu_mt_station_logistics.lua" />
+	<file name="ui\addons\moni\MT_Station_Logistics_Admin_Menu.lua" />
+	<file name="ui\addons\moni\MT_Station_Logistics_Reports_Menu.lua" />
+	<file name="ui\addons\moni\MT_Station_Logistics_Config_Menu.lua" />
+	<file name="ui\addons\moni\MT_Station_Logistics_Select_Ship.lua" />
+	<file name="ui\addons\moni\MT_Station_Logistics_ListWaypoints.lua" />
+	<file name="ui\addons\moni\MT_Station_Logistics_EditWaypoint.lua" />
+	<file name="ui\addons\moni\MT_Station_Logistics_CrewLog.lua" />
+	<file name="ui\addons\moni\MT_Station_Logistics_ShipLog.lua" />
+	<file name="ui\addons\moni\MT_Station_Logistics_AdminLog.lua" />
+	<file name="ui\addons\moni\MT_Station_Logistics_Rename.lua" />
+	<file name="ui\addons\moni\lib\LibMT.lua" />
+	<dependency name="ego_detailmonitorHelper" />
+</addon>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<content id="ws_383547458" name="MitchTech Station Logistics" description="Facilitates CLS style ships for player stations" author="wysiwyg" version="108" date="2015-02-04" save="false">
+<content id="ws_383547458" name="MitchTech Station Logistics" description="Facilitates CLS style ships for player stations" author="wysiwyg" version="108" date="2015-02-01" save="false">
   <dependency version="300"></dependency>
+  <dependency id="ws_310835139" version="020" name="Side Bar Extender"></dependency>
   <text language="44" name="MitchTech Station Logistics" description="Facilitates CLS style ships for player stations" author="wysiwyg" />
 </content>

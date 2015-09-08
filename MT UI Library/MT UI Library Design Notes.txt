@@ -1,0 +1,39 @@
+Design Notes for MT UI Library
+Last Update: 2015-04-09
+
+General Notes
+Stacking menus based essentially on LibMJ Library with additions
+	-- Handles returns to MD script if needed to get data and affect gamestate where not possible in Lua
+	-- Handle as many FFI functions in lib as possible to make for easy maintenance
+	-- Handle calling vanilla menus - system for linking to call structure
+	-- Unified parameter/argument structure
+	-- Increase table types that can be drawn, handle more cases - Basic title, Entity, Object, Custom, etc 
+	-- Facility for creating menu hooks??
+	-- Re-visit map draw stuff
+
+Dev Diary
+2015-04-11 - 	Completed basic import of LibMJ and confirmed working
+				Renamed .lua files to remove spaces							.\ui\MT_UI_LIB.lua. and \ui\MT_UI_LIB_Stack.lua
+				Changed back to LibMT name
+
+2015-04-09 - 	Added Stack Object definition file - 						.\ui\MT UI LIB Stack.lua
+				Added Main Library function definition file 				.\ui\MT UI LIB.lua
+				Created mod structure - added 								.\content.xml and 
+																			.\ui.xml
+																			
+General Discussion
+
+11/4 
+
+Ego menus consist of the following callback menus that do all the work:
+init()						- Registers the addon menu on game load
+onShowMenu()				- This is the main menu displaying function and is executed when the menu is called from MD. The final display is often <menu>.display()
+onUpdate()					- requires the UpdateInterval key to be set for the menu. Executes time based updates of the menu's view.
+onRowChanged()				- Executes every time the row changes
+onSelectElement() 			- Never seems to be used for menus
+onCloseElement(dueToClose)	- Handles the menu closing if the user presses < x or escape/del
+
+Registration - menus are registered with the Menus table and the helper functions they depend on
+
+
+

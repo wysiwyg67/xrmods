@@ -11,15 +11,19 @@ TRADER - global.$XRCLS.$lTradeShips.{<ship_index>
 5		$iLevel				-- The level (range, crewskill etc) that the ship is operating at
 6		$iCrewScore			-- The crew's score derived from the crew combinedskill value
 7		[ <ship_log> ]		-- The ship's log
-8		$iIsActive			-- Integer indicating activity 0 = None, 1 = Trading, 2 = Mining
+8		$iIsActive			-- Integer indicating activity 0 = None, 1 = Trading, 2 = Mining, 3 = Stopped -- proposed (none=0, stopped=1, locked=2, reserved=3, reserved=4, reserved=5, trading=6, mining=7 -->
 9		[ <ship_stats> ]	-- The ship's trading stats
 10		$iIndex				-- The ships index in the global $lTradeShips list
 11		$iNumWaypoints		-- The number of waypoints in the <waypoint> list
 12		$lTrackLog			-- Tracking log for ship
 13		$iDbgLvl			-- The debugging level for this ship 0=normal 1=verbose
 14		$iTrack				-- True (1) if tracking ship
+15		[ <ShipSettings> ]	-- A List of ship settings
 	]
 
+<ShipSettings>
+1		$bSupplyCV			-- True if the ship should check in range CVs for supply needs	
+	
 <cargo_list>
 	[
 1		$iFuelStorage		-- Amount of cargo space for fuel cells

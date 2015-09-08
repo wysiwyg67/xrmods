@@ -1,0 +1,19 @@
+
+local d =  {}
+d[0] = {
+    category = "trading",
+    insertions = 
+	{
+		{
+        section = "gMT_Logistics",
+		icon = "mm_ic_trading",
+		name = ReadText( 150402, 1 ),	-- name = "MT Station Logistics",
+		condition = true,
+		info = ReadText( 150402, 2 ),	-- info = "Set-up and manage Station Traders",
+		sectionparam = { 0, 0, {}, {}, {}, {} }
+        }
+    }
+}
+
+return d
+

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<content id="wysi-1504" name="MitchTech UI Library" description="Provides simple helper functions for creating menu driven UI systems" author="wysiwyg" version="100" date="2015-04-09" save="false">
+  <dependency version="300"></dependency>
+  <text language="44" name="MitchTech UI Library" description="Provides simple helper functions for creating menu driven UI systems" author="wysiwyg" />
+</content>
